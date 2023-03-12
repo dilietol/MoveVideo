@@ -6,8 +6,8 @@ from typing import List
 
 
 
-DIR_IN = "movevideo_in"
-DIR_OUT = "movevideo_out"
+DIR_IN = "in"
+DIR_OUT = "out"
 
 
 def generate_source_list():
