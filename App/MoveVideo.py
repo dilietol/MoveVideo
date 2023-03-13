@@ -46,7 +46,7 @@ def extract_key_from_filename(file_in):
 
 
 def extract_keys_from_dirname(file_in):
-    keys = file_in.split('-')
+    keys = file_in.split('.')
     return [sub.strip() for sub in keys]
 
 
