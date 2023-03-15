@@ -1,5 +1,6 @@
 # This is a sample Python script.
 import shutil
+import sys
 from collections import namedtuple
 from pathlib import Path
 from typing import List
@@ -73,6 +74,7 @@ if __name__ == '__main__':
     print(found_key_list)
     print("Missing keys:")
     print(missing_key_list)
+    sys.stdout.flush()
 
     for key_name in found_key_list:
         destination_dir = [x.Path for x in destination_list if x.Key == key_name]
@@ -81,3 +83,4 @@ if __name__ == '__main__':
             shutil.move(str(Path(x)), str(Path(destination_dir[0])))
             print(r"Moved " + str(Path(x)) + " in " + str(Path(destination_dir[0])))
             # print(r"Fake moving " + str(Path(x)) + " in " + str(Path(destination_dir[0])))
+            sys.stdout.flush()
