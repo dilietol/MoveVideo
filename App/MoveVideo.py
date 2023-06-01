@@ -18,13 +18,13 @@ def generate_source_list():
     item_list: List[Item] = list()
     for txt_file in Path(DIR_IN).rglob('*.mkv'):
         key: str = extract_key_from_filename(txt_file.name)
-        item_list.append(Item(txt_file.name, txt_file, key))
+        item_list.append(Item(txt_file.name, txt_file, key.lower()))
     for txt_file in Path(DIR_IN).rglob('*.avi'):
         key: str = extract_key_from_filename(txt_file.name)
-        item_list.append(Item(txt_file.name, txt_file, key))
+        item_list.append(Item(txt_file.name, txt_file, key.lower()))
     for txt_file in Path(DIR_IN).rglob('*.mp4'):
         key: str = extract_key_from_filename(txt_file.name)
-        item_list.append(Item(txt_file.name, txt_file, key))
+        item_list.append(Item(txt_file.name, txt_file, key.lower()))
     return item_list
 
 
@@ -53,7 +53,7 @@ def extract_key_from_filename(file_in):
 
 def extract_keys_from_dirname(file_in):
     keys = file_in.split('.')
-    return [sub.strip() for sub in keys]
+    return [sub.strip().lower() for sub in keys]
 
 
 if __name__ == '__main__':
