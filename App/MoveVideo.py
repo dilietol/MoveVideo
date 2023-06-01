@@ -20,6 +20,9 @@ def generate_source_list():
     for txt_file in Path(DIR_IN).rglob('*.avi'):
         key: str = extract_key_from_filename(txt_file.name)
         item_list.append(Item(txt_file.name, txt_file, key))
+    for txt_file in Path(DIR_IN).rglob('*.mp4'):
+        key: str = extract_key_from_filename(txt_file.name)
+        item_list.append(Item(txt_file.name, txt_file, key))
     return item_list
 
 
