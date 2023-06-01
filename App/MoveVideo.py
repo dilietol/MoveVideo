@@ -6,9 +6,11 @@ from pathlib import Path
 from typing import List
 
 
+VERSION = "0.1"
 
 DIR_IN = "in"
 DIR_OUT = "out"
+
 
 
 def generate_source_list():
@@ -55,6 +57,7 @@ def extract_keys_from_dirname(file_in):
 
 
 if __name__ == '__main__':
+    print("Version: " + str(VERSION))
     source_list = generate_source_list()
     source_key_list = [sub.Key for sub in source_list]
     source_filename_list = [sub.File for sub in source_list]
