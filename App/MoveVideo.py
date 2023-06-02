@@ -46,6 +46,10 @@ def generate_destination_list():
 
 
 def extract_key_from_filename(file_in):
+    if file_in.find('[') == 0:
+        if file_in.find(']') != -1:
+            result = file_in[file_in.find('[') + 1:file_in.find(']')]
+            return result
     keys = file_in.split('.')
     return keys[0]
 
