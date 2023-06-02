@@ -6,12 +6,10 @@ from collections import namedtuple
 from pathlib import Path
 from typing import List
 
-
 VERSION = "0.1"
 
 DIR_IN = "in"
 DIR_OUT = "out"
-
 
 
 def generate_source_list():
@@ -53,8 +51,14 @@ def extract_key_from_filename(file_in):
 
 
 def extract_keys_from_dirname(file_in):
+    result = list()
     keys = file_in.split('.')
-    return [sub.strip().lower() for sub in keys]
+    for sub in keys:
+        key = sub.strip().lower()
+        result.append(key)
+        if key[-1] == 'n':
+            result.append(key[:-1])
+    return result
 
 
 if __name__ == '__main__':
@@ -87,7 +91,7 @@ if __name__ == '__main__':
         destination_dir = [x.Path for x in destination_list if x.Key == key_name]
         source_files = [x.Path for x in source_list if x.Key == key_name]
         for x in source_files:
-            shutil.move(str(Path(x)), os.path.join(str(Path(destination_dir[0])),os.path.basename(x)))
+            shutil.move(str(Path(x)), os.path.join(str(Path(destination_dir[0])), os.path.basename(x)))
             print(r"Moved " + str(Path(x)) + " in " + str(Path(destination_dir[0])))
             # print(r"Fake moving " + str(Path(x)) + " in " + str(Path(destination_dir[0])))
             sys.stdout.flush()
