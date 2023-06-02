@@ -1,4 +1,5 @@
 # This is a sample Python script.
+import os
 import shutil
 import sys
 from collections import namedtuple
@@ -86,7 +87,7 @@ if __name__ == '__main__':
         destination_dir = [x.Path for x in destination_list if x.Key == key_name]
         source_files = [x.Path for x in source_list if x.Key == key_name]
         for x in source_files:
-            shutil.move(str(Path(x)), str(Path(destination_dir[0])))
+            shutil.move(str(Path(x)), os.path.join(str(Path(destination_dir[0])),os.path.basename(x)))
             print(r"Moved " + str(Path(x)) + " in " + str(Path(destination_dir[0])))
             # print(r"Fake moving " + str(Path(x)) + " in " + str(Path(destination_dir[0])))
             sys.stdout.flush()
