@@ -1,4 +1,3 @@
-# This is a sample Python script.
 import os
 import shutil
 import sys
@@ -32,7 +31,7 @@ def generate_destination_list():
     item_list: List[Item] = list()
     p = Path(DIR_OUT)
     for txt_file in [f for f in p.iterdir() if (f.is_dir() or f.is_symlink())]:
-        keys = extract_keys_from_dirname(txt_file.name)
+        keys = extract_keys_from_directory_name(txt_file.name)
         for key in keys:
             if key.startswith("_"):
                 # Remove underscore for directories with multi group (starting with underscore)
@@ -54,7 +53,7 @@ def extract_key_from_filename(file_in):
     return keys[0]
 
 
-def extract_keys_from_dirname(file_in):
+def extract_keys_from_directory_name(file_in):
     result = list()
     keys = file_in.split('.')
     for sub in keys:
