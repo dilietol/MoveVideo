@@ -6,7 +6,7 @@ COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
 COPY App/MoveVideo.py .
-COPY App/contab/crontab /app/crontab/crontab
+COPY App/crontab/crontab /app/crontab/crontab
 VOLUME ["/app/in"]
 VOLUME ["/app/out"]
 
