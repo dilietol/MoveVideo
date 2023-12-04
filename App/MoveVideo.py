@@ -10,10 +10,18 @@ VERSION = "0.1"
 DIR_IN = "in"
 DIR_OUT = "out"
 
+if not os.path.isdir(DIR_IN):
+    raise Exception(f"Directory {DIR_IN} does not exist")
+
+if not os.path.isdir(DIR_OUT):
+    raise Exception(f"Directory {DIR_OUT} does not exist")
 
 def generate_source_list():
     Item = namedtuple("Item", ["File", "Path", "Key"])
     item_list: List[Item] = list()
+
+    # Cerca tutti i file .mkv, .avi e .mp4 in modo ricorsivo all'interno della directory DIR_IN
+    # e salva il nome del file, il percorso completo e la chiave del file nella lista degli oggetti "Item"
     for txt_file in Path(DIR_IN).rglob('*.mkv'):
         key: str = extract_key_from_filename(txt_file.name)
         item_list.append(Item(txt_file.name, txt_file, key.lower()))
@@ -30,6 +38,10 @@ def generate_destination_list():
     Item = namedtuple("Item", ["Dir", "Path", "Key"])
     item_list: List[Item] = list()
     p = Path(DIR_OUT)
+
+    # Cerca tutte le directory o i symlink presenti nella directory DIR_OUT.
+    # Per ogni nome di directory trovato, estrae le chiavi dal nome della directory
+    # e le salva nella lista degli oggetti "Item"
     for txt_file in [f for f in p.iterdir() if (f.is_dir() or f.is_symlink())]:
         keys = extract_keys_from_directory_name(txt_file.name)
         for key in keys:
@@ -47,6 +59,7 @@ def generate_destination_list():
 def extract_key_from_filename(file_in):
     if file_in.find('[') == 0:
         if file_in.find(']') != -1:
+            # Se il nome del file inizia con "[", allora assume che ci sia una chiave tra parentesi quadre
             result = file_in[file_in.find('[') + 1:file_in.find(']')]
             return result
     keys = file_in.split('.')
@@ -60,12 +73,15 @@ def extract_keys_from_directory_name(file_in):
         key = sub.strip().lower()
         result.append(key)
         if key[-1] == 'n':
+            # Aggiungi anche la chiave per la collezione basata su N (termina con N)
             result.append(key[:-1])
     return result
 
 
 if __name__ == '__main__':
     print("Version: " + str(VERSION))
+
+    # Genera la lista dei file sorgente e stampa i nomi dei file e le relative chiavi
     source_list = generate_source_list()
     source_key_list = [sub.Key for sub in source_list]
     source_filename_list = [sub.File for sub in source_list]
@@ -74,6 +90,7 @@ if __name__ == '__main__':
     print("Source keys:")
     print(source_key_list)
 
+    # Genera la lista delle directory di destinazione e stampa i nomi delle directory e le relative chiavi
     destination_list = generate_destination_list()
     destination_dir_list = [sub.Dir for sub in destination_list]
     destination_key_list = [sub.Key for sub in destination_list]
@@ -82,6 +99,8 @@ if __name__ == '__main__':
     print("Destination keys:")
     print(destination_key_list)
 
+    # Cerca le chiavi che si trovano sia nella lista sorgente che in quella di destinazione
+    # e stampa le chiavi trovate e quelle mancanti
     found_key_list = list(set(source_key_list) & set(destination_key_list))
     missing_key_list = list(set(source_key_list) - set(destination_key_list))
     print("Found keys:")
