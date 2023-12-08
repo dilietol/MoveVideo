@@ -14,6 +14,6 @@ RUN chmod 0644 /etc/cron.d/crontab
 VOLUME ["/app/in"]
 VOLUME ["/app/out"]
 
-RUN /usr/bin/crontab /etc/cron.d/crontab
+RUN crontab /etc/cron.d/crontab
 
 CMD [ "cron", "-f"]
