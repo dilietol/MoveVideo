@@ -1,1 +1,1 @@
-*/30 * * * * python /app/MoveVideo.py
+*/30 * * * * python /app/MoveVideo.py > /proc/1/fd/1 2>/proc/1/fd/2
