@@ -1,1 +1,1 @@
-*/30 * * * * python /app/MoveVideo.py >> /logfile
+*/30 * * * * python /app/MoveVideo.py
