@@ -7,8 +7,8 @@ from typing import List
 
 VERSION = "0.1"
 
-DIR_IN = "in"
-DIR_OUT = "out"
+DIR_IN = "/app/in"
+DIR_OUT = "/app/out"
 
 if not os.path.isdir(DIR_IN):
     raise Exception(f"Directory {DIR_IN} does not exist")
