@@ -82,6 +82,7 @@ def extract_keys_from_directory_name(file_in):
 
 
 def move_files(dir_out=DIR_OUT):
+    print(f"******************* Moving files from {DIR_IN} to {dir_out} ******************* ")
     source_list = generate_source_list()
     destination_list = generate_destination_list(dir_out)
 
@@ -134,3 +135,5 @@ if __name__ == '__main__':
     output_dirs = get_subdirectories_with_prefix(DIR_OUT_ROOT, DIR_OUT_LABEL)
     for output_dir in output_dirs:
         move_files(output_dir)
+
+    # TODO aggiungere la cancellazione dei file dalla cartella di input
