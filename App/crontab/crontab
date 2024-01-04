@@ -1,4 +1,4 @@
 # START CRON JOB
-*/10 * * * * cd /app && python3 MoveVideo.py > /proc/1/fd/1 2>/proc/1/fd/2
-15,45 * * * * cd /app && python3 ManageStash.py > /proc/1/fd/1 2>/proc/1/fd/2
+*/10 * * * * cd /app && /usr/local/bin/python3 MoveVideo.py > /proc/1/fd/1 2>/proc/1/fd/2
+15,45 * * * * cd /app && /usr/local/bin/python3 ManageStash.py > /proc/1/fd/1 2>/proc/1/fd/2
 # END CRON JOB
