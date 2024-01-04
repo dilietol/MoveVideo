@@ -729,5 +729,5 @@ if __name__ == "__main__":
     process_trash(stash, SCENES_MAX, paths, False)
     process_matches(stash, False)
     remove_matches(stash, False)
-    # process_scan(stash)
+    process_scan(stash)
     # test_stash(stash)
