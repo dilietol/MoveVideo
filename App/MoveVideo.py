@@ -136,4 +136,4 @@ if __name__ == '__main__':
     for output_dir in output_dirs:
         move_files(output_dir)
 
-    # TODO aggiungere la cancellazione dei file dalla cartella di input
+

@@ -1,5 +1,5 @@
 #This is the information about your stash instance
-[Host]
+[Stash_Host]
 #The scheme (either http or https)
 Scheme = http
 #The full hostname for your stash instance.  If you're running in docker you might want the
@@ -10,11 +10,19 @@ Port = 6973
 #The api key, if your stash instance is password protected
 ApiKey =
 
-#Configuration for the listener itself
-[Config]
-#A comma separated list of paths to watch.
-Paths = /data
+[QBittorent_Host]
+#The full hostname for your qbittorrent instance.  If you're running in docker you might want the
+#service name and not localhost here.
+Host = 192.168.1.88
+#The port number for your qbittorrent instance
+Port = 8080
+#The username, if your stash qbittorrent is password protected
+username = admin
+#The password, if your stash qbittorrent is password protected
+password = admin
 
 [Path]
 # Path to trash folder
 Trash = /61.1_series/61.1.9.import/trash
+Download = /downloads
+Incomplete = /downloads/incomplete

@@ -133,11 +133,11 @@ def initialize() -> (StashInterface, dict):
     config = parse_config()
     # Set up Stash
     stash_args = {
-        "scheme": config["Host"]["Scheme"],
-        "host": config["Host"]["Host"],
-        "port": config["Host"]["Port"]
+        "scheme": config["Stash_Host"]["Scheme"],
+        "host": config["Stash_Host"]["Host"],
+        "port": config["Stash_Host"]["Port"]
     }
-    if config["Host"]["ApiKey"]:
+    if config["Stash_Host"]["ApiKey"]:
         stash_args["ApiKey"] = config["Host"]["ApiKey"]
     stash = StashInterface(stash_args)
     return stash, config["Path"]
@@ -718,6 +718,8 @@ def process_trash(s: StashInterface, scenes_number_max, remote_paths, dry_run=Tr
 if __name__ == "__main__":
     # TODO delete Shoko integration in an other class
     # TODO Scheduling all the programs
+    # TODO reorganize the log call for the three programs
+    # TODO unify the logging anc configuration system
 
     stash, paths = initialize()
 
