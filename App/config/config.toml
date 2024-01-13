@@ -24,5 +24,5 @@ password = admin
 [Path]
 # Path to trash folder
 Trash = /61.1_series/61.1.9.import/trash
-Download = /downloads
+Downloads = /downloads
 Incomplete = /downloads/incomplete
