@@ -15,7 +15,7 @@ MATCHES_FILTERED = ""  # Tag to use to filter scenes to process
 MATCHES_DONE = "MATCH_DONE"  # Tag to add to scene when is processed
 MATCHES_UNKNOWN = "UNKNOWN"  # Tag to add to scene when is unknown
 MATCHES_SCENES_PAGE = 200
-MATCHES_SCENES_MAX = 400
+MATCHES_SCENES_MAX = 200
 MATCHES_SCENES_START_PAGE = 1
 SCENES_MAX = 1000
 
