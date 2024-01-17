@@ -1,5 +1,5 @@
 # START CRON JOB
-*/10 * * * * cd /app && /usr/local/bin/python3 MoveVideo.py > /proc/1/fd/1 2>/proc/1/fd/2
-15,45 * * * * cd /app && /usr/local/bin/python3 ManageStash.py > /proc/1/fd/1 2>/proc/1/fd/2
-5,35 * * * * cd /app && /usr/local/bin/python3 ManageQBittorent.py > /proc/1/fd/1 2>/proc/1/fd/2
+*/20 * * * * cd /app && /usr/local/bin/python3 MoveVideo.py > /proc/1/fd/1 2>/proc/1/fd/2
+5,25,45 * * * * cd /app && /usr/local/bin/python3 ManageStash.py > /proc/1/fd/1 2>/proc/1/fd/2
+10,15,30,35,50,55 * * * * cd /app && /usr/local/bin/python3 ManageQBittorent.py > /proc/1/fd/1 2>/proc/1/fd/2
 # END CRON JOB
