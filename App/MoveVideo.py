@@ -66,7 +66,13 @@ def extract_key_from_filename(file_in):
             result = file_in[file_in.find('[') + 1:file_in.find(']')]
             return result
     keys = file_in.split('.')
-    return keys[0]
+    alt_keys = file_in.split(' ')
+    if len(alt_keys[0]) < len(keys[0]):
+        result = alt_keys[0]
+    else:
+        result = keys[0]
+    return result
+
 
 
 def extract_keys_from_directory_name(file_in):
