@@ -518,6 +518,20 @@ def find_scenes_by_included_tags(s: StashInterface, tags_list: list[Tags], scene
     return scene_list
 
 
+def find_scenes_by_included_all_tags(s: StashInterface, tags_list: list[Tags], scene_filter: SceneFilter,
+                                     scenes_number_max) -> list[Scene]:
+    # Find scenes
+    scene_filter_str = {"organized": scene_filter.organized,
+                        "tags":
+                            {"value": [tag.id for tag in tags_list if tag.name in scene_filter.tags_includes],
+                             "modifier": "INCLUDES_ALL",
+                             "depth": 0
+                             }
+                        }
+    scene_list = find_scenes_by_scene_filter(s, scene_filter_str, scenes_number_max)
+    return scene_list
+
+
 def find_scenes_by_filecount(s: StashInterface, scene_filter: SceneFilter,
                              scenes_number_max) -> list[Scene]:
     # Find scenes
@@ -575,6 +589,27 @@ def remove_matches(s: StashInterface, dry_run=True):
                                                                                             MATCHES_DONE,
                                                                                             MATCHES_UNKNOWN]], dry_run)
     log_end("REMOVE MATCHES")
+
+
+def remove_false_matches(s: StashInterface, dry_run=True):
+    log_start("REMOVE FALSE MATCHES")
+    # Retrieve all tags from the StashInterface object
+    tags_list: List[Tags] = get_tags(s)
+    # log_block(tags_list, "TAGS LIST")
+
+    stashbox_list: List[StashBox] = get_stashbox_list(s, tags_list)
+    # log_block(stashbox_list, "STASHBOX LIST")
+
+    scene_filter = SceneFilter(organized=False,
+                               tags_includes=[MATCHES_FALSE_POSITIVE, MATCHES_DONE],
+                               tags_excludes=([]))
+    scene_list = find_scenes_by_included_all_tags(s, tags_list, scene_filter, MATCHES_SCENES_MAX)
+
+    remove_tags(scene_list, s, [x for x in tags_list if
+                                x.name in [y.tag_name for y in stashbox_list] or x.name in [MATCHES_DONE]], dry_run)
+
+    log_end("REMOVE FALSE MATCHES")
+    pass
 
 
 def delete_duplicates_files(s: StashInterface, dry_run=True):
@@ -731,5 +766,6 @@ if __name__ == "__main__":
     process_trash(stash, SCENES_MAX, paths, False)
     process_matches(stash, False)
     remove_matches(stash, False)
+    remove_false_matches(stash, False)
     process_scan(stash)
     # test_stash(stash)
