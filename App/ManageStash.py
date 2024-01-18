@@ -1,3 +1,4 @@
+import concurrent.futures
 import json
 import os
 import time
@@ -17,7 +18,7 @@ MATCHES_UNKNOWN = "UNKNOWN"  # Tag to add to scene when is unknown
 MATCHES_SCENES_PAGE = 200
 MATCHES_SCENES_MAX = 200
 MATCHES_SCENES_START_PAGE = 1
-MATCHES_SCENES_INTERNAL_PAGE = 10
+MATCHES_SCENES_INTERNAL_PAGE = 50
 SCENES_MAX = 1000
 
 
@@ -429,8 +430,10 @@ def find_scene_matches(s, scene_list: List[Scene], stashbox_list: List[StashBox]
         if scenes_counter % 10 == 0:
             log("Scenes processed: " + str(scenes_counter))
         found = False
-        for stashbox in stashbox_list:
-            found = found or call_stash_api(new_scene, s, scene, stashbox)
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [executor.submit(call_stash_api, new_scene, s, scene, stashbox) for stashbox in stashbox_list]
+            for future in concurrent.futures.as_completed(futures):
+                found = found or future.result()
         if not found:
             log("Scene %s NOT found" % scene.id)
             new_scene.tags.extend([tag for tag in tag_list if
