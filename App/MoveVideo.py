@@ -11,6 +11,7 @@ DIR_IN = "in"
 DIR_OUT = "out"
 DIR_OUT_ROOT = "."
 DIR_OUT_LABEL = "out"
+MIN_DIR_SIZE = 1000
 
 if not os.path.isdir(DIR_IN):
     raise Exception(f"Directory {DIR_IN} does not exist")
@@ -36,7 +37,7 @@ def delete_small_directories(directory_path):
             dir_path = os.path.join(root, dir)
             size = get_directory_size(dir_path)
             print(f"Size {dir_path} is {size} bytes")
-            if size < 1:
+            if size < MIN_DIR_SIZE:
                 print(f"Fake Deleting {dir_path} with size {size} bytes")
                 # os.rmdir(dir_path)
 
