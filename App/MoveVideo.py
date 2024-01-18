@@ -19,6 +19,28 @@ if not os.path.isdir(DIR_OUT):
     raise Exception(f"Directory {DIR_OUT} does not exist")
 
 
+def get_directory_size(directory_path):
+    total_size = 0
+    with os.scandir(directory_path) as it:
+        for entry in it:
+            if entry.is_file():
+                total_size += entry.stat().st_size
+            elif entry.is_dir():
+                total_size += get_directory_size(entry.path)
+    return total_size
+
+
+def delete_small_directories(directory_path):
+    for root, dirs, files in os.walk(directory_path):
+        for dir in dirs:
+            dir_path = os.path.join(root, dir)
+            size = get_directory_size(dir_path)
+            print(f"Size {dir_path} is {size} bytes")
+            if size < 1:
+                print(f"Fake Deleting {dir_path} with size {size} bytes")
+                # os.rmdir(dir_path)
+
+
 def generate_source_list():
     Item = namedtuple("Item", ["File", "Path", "Key"])
     item_list: List[Item] = list()
@@ -72,7 +94,6 @@ def extract_key_from_filename(file_in):
     else:
         result = keys[0]
     return result
-
 
 
 def extract_keys_from_directory_name(file_in):
@@ -141,3 +162,4 @@ if __name__ == '__main__':
     output_dirs = get_subdirectories_with_prefix(DIR_OUT_ROOT, DIR_OUT_LABEL)
     for output_dir in output_dirs:
         move_files(output_dir)
+    delete_small_directories(DIR_IN)
