@@ -430,7 +430,7 @@ def find_scene_matches(s, scene_list: List[Scene], stashbox_list: List[StashBox]
             log("Scenes processed: " + str(scenes_counter))
         found = False
         for stashbox in stashbox_list:
-            found = call_stash_api(new_scene, s, scene, stashbox)
+            found = found or call_stash_api(new_scene, s, scene, stashbox)
         if not found:
             log("Scene %s NOT found" % scene.id)
             new_scene.tags.extend([tag for tag in tag_list if
