@@ -17,6 +17,7 @@ MATCHES_UNKNOWN = "UNKNOWN"  # Tag to add to scene when is unknown
 MATCHES_SCENES_PAGE = 200
 MATCHES_SCENES_MAX = 200
 MATCHES_SCENES_START_PAGE = 1
+MATCHES_SCENES_INTERNAL_PAGE = 10
 SCENES_MAX = 1000
 
 
@@ -429,20 +430,7 @@ def find_scene_matches(s, scene_list: List[Scene], stashbox_list: List[StashBox]
             log("Scenes processed: " + str(scenes_counter))
         found = False
         for stashbox in stashbox_list:
-            data = None
-            for i in range(10):
-                try:
-                    data = s.scrape_scene({"stash_box_index": stashbox.id}, {"scene_id": scene.id})
-                except Exception as e:
-                    log("FAILED TO SCRAPE SCENE %s FROM STASHBOX %s" % (scene.id, stashbox.name))
-                    print(f"Received a GraphQL exception : {e}")
-                    time.sleep(4)
-                    data = None
-
-            if data is not None:
-                log("Scene %s found in %s" % (scene.id, stashbox.name))
-                new_scene.tags.append(Tags(id=stashbox.tag_id, name=stashbox.tag_name))
-                found = True
+            found = call_stash_api(new_scene, s, scene, stashbox)
         if not found:
             log("Scene %s NOT found" % scene.id)
             new_scene.tags.extend([tag for tag in tag_list if
@@ -450,6 +438,24 @@ def find_scene_matches(s, scene_list: List[Scene], stashbox_list: List[StashBox]
         result.append(new_scene)
     log_end("FETCHING SCENE MATCHES")
     return result
+
+
+def call_stash_api(new_scene, s, scene, stashbox):
+    data = None
+    found = False
+    for i in range(10):
+        try:
+            data = s.scrape_scene({"stash_box_index": stashbox.id}, {"scene_id": scene.id})
+        except Exception as e:
+            log("FAILED TO SCRAPE SCENE %s FROM STASHBOX %s" % (scene.id, stashbox.name))
+            print(f"Received a GraphQL exception : {e}")
+            time.sleep(4)
+            data = None
+    if data is not None:
+        log("Scene %s found in %s" % (scene.id, stashbox.name))
+        new_scene.tags.append(Tags(id=stashbox.tag_id, name=stashbox.tag_name))
+        found = True
+    return found
 
 
 def find_scenes_by_scene_filter(s, scene_filter_str, scenes_number_max=0) -> list[Scene]:
@@ -557,14 +563,15 @@ def process_matches(s: StashInterface, dry_run=True):
     scene_list = find_scenes_by_tags(s, tags_list, scene_filter, MATCHES_SCENES_MAX)
     # log_block(scene_list, "FIND SCENES")
     found_list: List[Scene] = []
-    if len(scene_list) > 0:
-        found_list = find_scene_matches(s, scene_list, stashbox_list, tags_list)
+    for i in range(0, len(scene_list), MATCHES_SCENES_INTERNAL_PAGE):
+        scene_list_page = scene_list[i:i + MATCHES_SCENES_INTERNAL_PAGE]
+        found_list = find_scene_matches(s, scene_list_page, stashbox_list, tags_list)
         # log_block(found_list, "MATCHES RESULT LIST")
-    log("Number of matches found: " + str(
-        len([elem.id for elem in found_list if
-             any(y.name in [x.tag_name for x in stashbox_list] for y in elem.tags)])))
+        log("Number of matches found: " + str(
+            len([elem.id for elem in found_list if
+                 any(y.name in [x.tag_name for x in stashbox_list] for y in elem.tags)])))
 
-    update_tags(found_list, s, dry_run)
+        update_tags(found_list, s, dry_run)
     log_end("PROCESS MATCHES")
 
 
