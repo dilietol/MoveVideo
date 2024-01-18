@@ -564,6 +564,7 @@ def process_matches(s: StashInterface, dry_run=True):
     # log_block(scene_list, "FIND SCENES")
     found_list: List[Scene] = []
     for i in range(0, len(scene_list), MATCHES_SCENES_INTERNAL_PAGE):
+        log("List group iterator: " + str(i))
         scene_list_page = scene_list[i:i + MATCHES_SCENES_INTERNAL_PAGE]
         found_list = find_scene_matches(s, scene_list_page, stashbox_list, tags_list)
         # log_block(found_list, "MATCHES RESULT LIST")
