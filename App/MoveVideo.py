@@ -39,7 +39,7 @@ def delete_small_directories(directory_path):
             print(f"Size {dir_path} is {size} bytes")
             if size < MIN_DIR_SIZE:
                 print(f"Fake Deleting {dir_path} with size {size} bytes")
-                # os.rmdir(dir_path)
+                os.rmdir(dir_path)
 
 
 def generate_source_list():
