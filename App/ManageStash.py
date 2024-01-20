@@ -770,7 +770,7 @@ if __name__ == "__main__":
     stash, paths = initialize()
 
     delete_duplicates_scenes(stash, PhashDistance.EXACT, False)
-    # delete_duplicates_scenes(stash, PhashDistance.HIGH, True)
+    delete_duplicates_scenes(stash, PhashDistance.HIGH, False)
     # delete_duplicates_scenes(stash, PhashDistance.MEDIUM, True)
     delete_duplicates_files(stash, False)
     process_corrupted(stash, SCENES_MAX, False)
