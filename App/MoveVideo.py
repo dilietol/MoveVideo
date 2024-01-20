@@ -38,7 +38,12 @@ def delete_small_directories(directory_path):
             size = get_directory_size(dir_path)
             print(f"Size {dir_path} is {size} bytes")
             if size < MIN_DIR_SIZE:
-                print(f"Fake Deleting {dir_path} with size {size} bytes")
+                for file_name in os.listdir(dir_path):
+                    file_path = os.path.join(dir_path, file_name)
+                    if os.path.isfile(file_path):
+                        os.remove(file_path)
+                        print(f"Deleting {file_path}")
+                print(f"Deleting {dir_path} with size {size} bytes")
                 os.rmdir(dir_path)
 
 
