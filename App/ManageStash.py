@@ -77,7 +77,7 @@ class SceneFilter:
 
 MATCHES_STASHBOX: List[StashBox] = [
     StashBox(name="stashdb.org", tag_name="MATCH_STASHDB", id=0, tag_id=0),
-    StashBox(name="ThePornDB", tag_name="MATCH_PORNDB", id=0, tag_id=0),
+##    StashBox(name="ThePornDB", tag_name="MATCH_PORNDB", id=0, tag_id=0),
     StashBox(name="PMV Stash", tag_name="MATCH_PMV", id=0, tag_id=0)
 ]
 
