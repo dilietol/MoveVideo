@@ -77,8 +77,9 @@ class SceneFilter:
 
 MATCHES_STASHBOX: List[StashBox] = [
     StashBox(name="stashdb.org", tag_name="MATCH_STASHDB", id=0, tag_id=0),
-##    StashBox(name="ThePornDB", tag_name="MATCH_PORNDB", id=0, tag_id=0),
-    StashBox(name="PMV Stash", tag_name="MATCH_PMV", id=0, tag_id=0)
+    StashBox(name="ThePornDB", tag_name="MATCH_PORNDB", id=0, tag_id=0),
+    StashBox(name="PMV Stash", tag_name="MATCH_PMV", id=0, tag_id=0),
+    StashBox(name="FansDB", tag_name="MATCH_FANSDB", id=0, tag_id=0)
 ]
 
 # Setup logger
@@ -771,7 +772,7 @@ if __name__ == "__main__":
 
     delete_duplicates_scenes(stash, PhashDistance.EXACT, False)
     delete_duplicates_scenes(stash, PhashDistance.HIGH, False)
-    # delete_duplicates_scenes(stash, PhashDistance.MEDIUM, True)
+    # delete_duplicates_scenes(stash, PhashDistance.MEDIUM, False)
     delete_duplicates_files(stash, False)
     process_corrupted(stash, SCENES_MAX, False)
     process_trash(stash, SCENES_MAX, paths, False)
