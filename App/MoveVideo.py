@@ -56,6 +56,7 @@ def get_directory_size(directory_path):
 
 
 def delete_small_directories(directory_path):
+    log_start(f"Deleting small directories in {directory_path}")
     for root, dirs, files in os.walk(directory_path):
         for dir in dirs:
             dir_path = os.path.join(root, dir)
@@ -69,6 +70,7 @@ def delete_small_directories(directory_path):
                         log(f"Deleting {file_path}")
                 log(f"Deleting {dir_path} with size {size} bytes")
                 os.rmdir(dir_path)
+    log_end(f"Deleting small directories in {directory_path}")
 
 
 def generate_source_list():
