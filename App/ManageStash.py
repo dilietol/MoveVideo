@@ -86,7 +86,7 @@ MATCHES_STASHBOX: List[StashBox] = [
 logger = logging.getLogger("manage-stash")
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
+# ch.setLevel(logging.INFO)
 ch.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
 logger.addHandler(ch)
 
@@ -772,7 +772,8 @@ if __name__ == "__main__":
 
     delete_duplicates_scenes(stash, PhashDistance.EXACT, False)
     delete_duplicates_scenes(stash, PhashDistance.HIGH, False)
-    # delete_duplicates_scenes(stash, PhashDistance.MEDIUM, False)
+    delete_duplicates_scenes(stash, PhashDistance.MEDIUM, False)
+    delete_duplicates_scenes(stash, PhashDistance.LOW, False)
     delete_duplicates_files(stash, False)
     process_corrupted(stash, SCENES_MAX, False)
     process_trash(stash, SCENES_MAX, paths, False)
