@@ -4,6 +4,7 @@ import sys
 from collections import namedtuple
 from pathlib import Path
 from typing import List
+import logging
 
 VERSION = "0.1"
 
@@ -18,6 +19,29 @@ if not os.path.isdir(DIR_IN):
 
 if not os.path.isdir(DIR_OUT):
     raise Exception(f"Directory {DIR_OUT} does not exist")
+
+logger = logging.getLogger("MoveVideo")
+logger.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+# ch.setLevel(logging.INFO)
+ch.setFormatter(logging.Formatter("%(asctime)s %(name)s %(message)s"))
+logger.addHandler(ch)
+
+
+def log(msg):
+    logger.info(msg)
+
+
+def debug(msg):
+    logger.debug(msg)
+
+
+def log_end(title):
+    log("********************** %s END **********************" % title)
+
+
+def log_start(title):
+    log("********************** %s START **********************" % title)
 
 
 def get_directory_size(directory_path):
@@ -36,14 +60,14 @@ def delete_small_directories(directory_path):
         for dir in dirs:
             dir_path = os.path.join(root, dir)
             size = get_directory_size(dir_path)
-            print(f"Size {dir_path} is {size} bytes")
+            log(f"Size {dir_path} is {size} bytes")
             if size < MIN_DIR_SIZE:
                 for file_name in os.listdir(dir_path):
                     file_path = os.path.join(dir_path, file_name)
                     if os.path.isfile(file_path):
                         os.remove(file_path)
-                        print(f"Deleting {file_path}")
-                print(f"Deleting {dir_path} with size {size} bytes")
+                        log(f"Deleting {file_path}")
+                log(f"Deleting {dir_path} with size {size} bytes")
                 os.rmdir(dir_path)
 
 
@@ -115,7 +139,7 @@ def extract_keys_from_directory_name(file_in):
 
 
 def move_files(dir_out=DIR_OUT):
-    print(f"******************* Moving files from {DIR_IN} to {dir_out} ******************* ")
+    log_start(f"Moving files from {DIR_IN} to {dir_out}")
     source_list = generate_source_list()
     destination_list = generate_destination_list(dir_out)
 
@@ -124,22 +148,22 @@ def move_files(dir_out=DIR_OUT):
     destination_dir_list = [sub.Dir for sub in destination_list]
     destination_key_list = [sub.Key for sub in destination_list]
 
-    print("Source filenames:")
-    print(source_filename_list)
-    print("Source keys:")
-    print(source_key_list)
-    #    print("Destination directories:")
-    #    print(destination_dir_list)
-    print("Destination keys:")
-    print(destination_key_list)
+    log("Source filenames:")
+    log(source_filename_list)
+    log("Source keys:")
+    log(source_key_list)
+    #    log("Destination directories:")
+    #    log(destination_dir_list)
+    log("Destination keys:")
+    log(destination_key_list)
 
     found_key_list = list(set(source_key_list) & set(destination_key_list))
     missing_key_list = list(set(source_key_list) - set(destination_key_list))
 
-    print("Found keys:")
-    print(found_key_list)
-    print("Missing keys:")
-    print(missing_key_list)
+    log("Found keys:")
+    log(found_key_list)
+    log("Missing keys:")
+    log(missing_key_list)
 
     for key_name in found_key_list:
         destination_dir = [x.Path for x in destination_list if x.Key == key_name]
@@ -148,7 +172,9 @@ def move_files(dir_out=DIR_OUT):
         for source_file in source_files:
             destination_file = os.path.join(str(Path(destination_dir[0])), os.path.basename(source_file))
             shutil.move(str(Path(source_file)), destination_file)
-            print(f"Moved {source_file} to {destination_file}")
+            log(f"Moved {source_file} to {destination_file}")
+
+    log_end(f"Moving files from {DIR_IN} to {dir_out}")
 
     sys.stdout.flush()
 
@@ -163,7 +189,7 @@ def get_subdirectories_with_prefix(directory, prefix):
 
 
 if __name__ == '__main__':
-    print("Version: " + str(VERSION))
+    log("Version: " + str(VERSION))
 
     output_dirs = get_subdirectories_with_prefix(DIR_OUT_ROOT, DIR_OUT_LABEL)
     for output_dir in output_dirs:

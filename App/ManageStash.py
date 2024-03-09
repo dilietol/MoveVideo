@@ -87,7 +87,7 @@ logger = logging.getLogger("manage-stash")
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 # ch.setLevel(logging.INFO)
-ch.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
+ch.setFormatter(logging.Formatter("%(asctime)s %(name)s %(message)s"))
 logger.addHandler(ch)
 
 
