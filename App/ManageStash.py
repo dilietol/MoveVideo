@@ -1,15 +1,17 @@
 import concurrent.futures
+import configparser
 import json
+import logging
 import os
 import time
-from typing import Any, List
 from dataclasses import asdict, is_dataclass, dataclass
-
-import logging
-import configparser
+from typing import List
 
 from stashapi.stash_types import PhashDistance
 from stashapi.stashapp import StashInterface
+from jsonpath_ng.ext import parse
+
+from App import FindBestFile
 
 MATCHES_FALSE_POSITIVE = "MATCH_FALSE"  # Tag to add to scene when is not a match
 MATCHES_FILTERED = ""  # Tag to use to filter scenes to process
@@ -31,27 +33,6 @@ class StashBox:
 
 
 @dataclass
-class FileSlim:
-    # File info
-    id: int
-    organized: bool
-    width: int
-    video_codec: float
-    size: int
-    duration: float
-
-
-@dataclass
-class DuplicatedFiles:
-    # File comparison result
-    files: List[FileSlim]  # list of files to compare
-    id: int  # id of the file to keep
-    why: str  # reason why the file was selected or not
-    to_delete: List[int]  # list of files to delete
-    to_delete_size: float  # size of files to delete
-
-
-@dataclass
 class Tags:
     id: int
     name: str
@@ -62,9 +43,9 @@ class Scene:
     id: int
     organized: bool
     tags: List[Tags]
-    files: List[FileSlim]
+    files: List[FindBestFile.FileSlim]
     title: str = ""
-    duplicated_files: DuplicatedFiles = None
+    duplicated_files: FindBestFile.DuplicatedFiles = None
 
 
 @dataclass
@@ -73,6 +54,12 @@ class SceneFilter:
     tags_includes: List[str]
     tags_excludes: List[str]
     file_count: int = 0
+
+# TODO: complete this dataclass
+@dataclass
+class Match:
+    title: str
+    details: str
 
 
 MATCHES_STASHBOX: List[StashBox] = [
@@ -146,158 +133,30 @@ def initialize() -> (StashInterface, dict):
     return stash, config["Path"]
 
 
-def check_organized(array: list[FileSlim]):
-    first_value = array[0].organized
-    for elem in array:
-        if elem.organized != first_value:
-            return False
-    return True
-
-
-def check_duration(array: List[FileSlim]):
-    first_value = float(array[0].duration)
-    if first_value < 600:
-        return False
-    for elem in array:
-        if abs((float(elem.duration) - first_value) / first_value) > 0.0005:
-            return False
-    return True
-
-
-def select_by_width(files_dict: List[FileSlim]) -> List[FileSlim]:
-    # Find the maximum value of the attribute "width"
-    max_width = max(elem.width for elem in files_dict)
-
-    # Select all occurrences with attribute 'width' equal to the maximum value
-    matching_elements: list[FileSlim] = [elem for elem in files_dict if elem.width == max_width]
-    return matching_elements
-
-
-def select_by_codec(files_dict) -> List[FileSlim]:
-    matching_elements_henvc: list[Any] = [elem for elem in files_dict if elem.video_codec == "hevc"]
-    if len(matching_elements_henvc) >= 1:
-        return matching_elements_henvc
-    else:
-        matching_elements: list[Any] = [elem for elem in files_dict if elem.video_codec == "h264"]
-        if len(matching_elements) >= 1:
-            return matching_elements
-        else:
-            matching_elements: list[Any] = [elem for elem in files_dict if elem.video_codec == "vc1"]
-            if len(matching_elements) >= 1:
-                return matching_elements
-            else:
-                matching_elements: list[Any] = [elem for elem in files_dict if elem.video_codec == "mpeg4"]
-                if len(matching_elements) >= 1:
-                    return matching_elements
-                else:
-                    matching_elements: list[Any] = [elem for elem in files_dict if elem.video_codec == "wmv3"]
-                    if len(matching_elements) >= 1:
-                        return matching_elements
-    return []
-
-
-def select_by_size(files_dict: List[FileSlim]) -> List[FileSlim]:
-    max_value = max(files_dict, key=lambda x: x.size).size
-    result = list(filter(lambda x: x.size == max_value, files_dict))
-    return result
-
-
-def select_the_best(files_dict: List[FileSlim]) -> DuplicatedFiles:
-    result = DuplicatedFiles(files_dict, 0, "NA", [], 0)
-    if len(files_dict) == 0:
-        result.id = 0
-        result.why = "No files"
-        return result
-    if len(files_dict) == 1:
-        result.id = 0
-        result.why = "No duplicates"
-        return result
-    organized_requested = not check_organized(files_dict)
-    if not check_duration(files_dict):
-        result.id = 0
-        result.why = "Duration not valid"
-        return result
-    files_dict_2 = select_by_width(files_dict)
-    if len(files_dict_2) == 0:
-        result.id = 0
-        result.why = "Not good width"
-        return result
-    elif len(files_dict_2) == 1:
-        if organized_requested and not files_dict_2[0].organized:
-            result.id = 0
-            result.why = "Not all organized"
-        else:
-            result.id = files_dict_2[0].id
-            result.why = "Best width"
-            result.to_delete, result.to_delete_size = files_to_delete(files_dict, files_dict_2[0].id)
-        return result
-    files_dict_3 = select_by_codec(files_dict_2)
-    if len(files_dict_3) == 0:
-        result.id = 0
-        result.why = "Not good codec"
-        return result
-    elif len(files_dict_3) == 1:
-        if organized_requested and not files_dict_3[0].organized:
-            result.id = 0
-            result.why = "Not all organized"
-        else:
-            result.id = files_dict_3[0].id
-            result.why = "Best codec"
-            result.to_delete, result.to_delete_size = files_to_delete(files_dict, files_dict_3[0].id)
-            return result
-    files_dict_4 = select_by_size(files_dict_3)
-    if len(files_dict_4) == 0:
-        result.id = 0
-        result.why = "Not good size"
-        return result
-    elif len(files_dict_4) == 1:
-        if organized_requested and not files_dict_4[0].organized:
-            result.id = 0
-            result.why = "Not all organized"
-        else:
-            result.id = files_dict_4[0].id
-            result.why = "Best size"
-            result.to_delete, result.to_delete_size = files_to_delete(files_dict, files_dict_4[0].id)
-        return result
-
-    organized_one = [elem for elem in files_dict_4 if elem.organized]
-    if len(organized_one) == 1:
-        result.id = organized_one[0].id
-        result.why = "One organized among equal files"
-        result.to_delete, result.to_delete_size = files_to_delete(files_dict, organized_one[0].id)
-    elif len(organized_one) > 1:
-        result.id = organized_one[0].id
-        result.why = "Selected among many organized equal files"
-        result.to_delete, result.to_delete_size = files_to_delete(files_dict, organized_one[0].id)
-    else:
-        result.id = 0
-        result.why = "No organized among equal file"
-    return result
-
-
-def files_to_delete(files_dict: list[FileSlim], best_file_id: int):
-    return list(filter(lambda x: x != best_file_id, [elem.id for elem in files_dict])), round(
-        (sum([elem.size for elem in files_dict if
-              elem.id != best_file_id]) / 1024 / 1024 / 1024), 2)
-
-
-def get_scene_duplicated_files(distance: PhashDistance, s: StashInterface) -> list[DuplicatedFiles]:
+def get_scene_duplicated_files(distance: PhashDistance, s: StashInterface) -> list[FindBestFile.DuplicatedFiles]:
     # Duplicates
     log("REQUEST DUPLICATE SCENES FOUND")
     data = s.find_duplicate_scenes(distance=distance, fragment='...Scene')
     log("DUPLICATE SCENES FOUND")
     # log_block(data, "DUPLICATE SCENES DETAILS")
-    compared_files_list: list[DuplicatedFiles] = []
+    compared_files_list: list[FindBestFile.DuplicatedFiles] = []
     for element in data:
-        duplicated_files_slim: list[FileSlim] = list()
+        duplicated_files_slim: list[FindBestFile.FileSlim] = list()
         for item in element:
-            file_slim = FileSlim(id=item.get("id"), organized=item.get("organized"),
-                                 width=item.get("files")[0].get("width"),
-                                 video_codec=item.get("files")[0].get("video_codec"),
-                                 size=item.get("files")[0].get("size"),
-                                 duration=item.get("files")[0].get("duration"))
+            file_slim = FindBestFile.FileSlim(id=item.get("id"), organized=item.get("organized"),
+                                              width=item.get("files")[0].get("width"),
+                                              video_codec=item.get("files")[0].get("video_codec"),
+                                              size=item.get("files")[0].get("size"),
+                                              duration=item.get("files")[0].get("duration"),
+                                              basename=item.get("files")[0].get("basename"),
+                                              format=item.get("files")[0].get("format"),
+                                              oshash=parse("$.files[0].fingerprints[?type=='oshash'].value").find(item)[
+                                                  0].value,
+                                              phash=parse("$.files[0].fingerprints[?type=='phash'].value").find(item)[
+                                                  0].value
+                                              )
             duplicated_files_slim.append(file_slim)
-        compared_files_list.append(select_the_best(duplicated_files_slim))
+        compared_files_list.append(FindBestFile.select_the_best(duplicated_files_slim))
     return compared_files_list
 
 
@@ -481,13 +340,31 @@ def find_scenes_by_scene_filter(s, scene_filter_str, scenes_number_max=0) -> lis
         for elem in data:
             scene_list.append(Scene(id=elem["id"], organized=elem["organized"], title=elem["title"],
                                     tags=[Tags(id=tag["id"], name=tag["name"]) for tag in elem["tags"]],
-                                    files=[FileSlim(id=file["id"], organized=elem["organized"],
-                                                    width=file["width"], video_codec=file["video_codec"],
-                                                    size=file["size"], duration=file["duration"]) for file in
-                                           elem["files"]], duplicated_files=select_the_best(
-                    [FileSlim(id=file["id"], organized=elem["organized"],
-                              width=file["width"], video_codec=file["video_codec"],
-                              size=file["size"], duration=file["duration"]) for file in
+                                    files=[FindBestFile.FileSlim(id=file["id"], organized=elem["organized"],
+                                                                 width=file["width"], video_codec=file["video_codec"],
+                                                                 size=file["size"], duration=file["duration"],
+                                                                 basename=file["basename"],
+                                                                 format=file["format"],
+                                                                 oshash=
+                                                                 parse("$.fingerprints[?type=='oshash'].value").find(
+                                                                     file)[0].value,
+                                                                 phash=
+                                                                 parse("$.fingerprints[?type=='phash'].value").find(
+                                                                     file)[0].value
+                                                                 ) for file
+                                           in
+                                           elem["files"]], duplicated_files=FindBestFile.select_the_best(
+                    [FindBestFile.FileSlim(id=file["id"], organized=elem["organized"],
+                                           width=file["width"], video_codec=file["video_codec"],
+                                           size=file["size"], duration=file["duration"], basename=file["basename"],
+                                           format=file["format"],
+                                           oshash=
+                                           parse("$.fingerprints[?type=='oshash'].value").find(
+                                               file)[0].value,
+                                           phash=
+                                           parse("$.fingerprints[?type=='phash'].value").find(
+                                               file)[0].value
+                                           ) for file in
                      elem["files"]])))
         page_number += 1
         if len(scene_list) >= scenes_number_max != 0:
@@ -578,6 +455,46 @@ def process_matches(s: StashInterface, dry_run=True):
 
         update_tags(found_list, s, dry_run)
     log_end("PROCESS MATCHES")
+
+
+def process_test(s: StashInterface, dry_run=True):
+    # TODO: Complete the test. Use this method to test new code and API call
+    log_start("PROCESS Test")
+    # Retrieve all tags from the StashInterface object
+    tags_list: List[Tags] = get_tags(s)
+
+    log_block(tags_list, "TAGS LIST")
+    stashbox_list: List[StashBox] = get_stashbox_list(s, tags_list)
+    log_block(stashbox_list, "STASHBOX LIST")
+
+    scene_filter = SceneFilter(organized=False, tags_includes=["MATCH_STASHDB"],
+                               tags_excludes=([MATCHES_FALSE_POSITIVE,
+                                               MATCHES_DONE]))
+    scene_list = find_scenes_by_tags(s, tags_list, scene_filter, 1)
+    log_block(scene_list, "FIND SCENES")
+
+    log_start("SCRAPE SCENE")
+    stashbox = stashbox_list[0]
+    for scene in scene_list:
+        data = None
+        found = False
+        for i in range(10):
+            try:
+                data = s.scrape_scene({"stash_box_index": stashbox.id}, {"scene_id": scene.id})
+            except Exception as e:
+                log("FAILED TO SCRAPE SCENE %s FROM STASHBOX %s" % (scene.id, stashbox.name))
+                print(f"Received a GraphQL exception : {e}")
+                time.sleep(4)
+                data = None
+        if data is not None:
+            log("Scene %s found in %s" % (scene.id, stashbox.name))
+            log(json.dumps(data, indent=4))
+            found = True
+        else:
+            log("Scene %s NOT found" % scene.id)
+    log_end("SCRAPE SCENE")
+
+    log_end("PROCESS Test")
 
 
 def remove_matches(s: StashInterface, dry_run=True):
