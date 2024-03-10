@@ -11,7 +11,7 @@ from stashapi.stash_types import PhashDistance
 from stashapi.stashapp import StashInterface
 from jsonpath_ng.ext import parse
 
-from App import FindBestFile
+from FindBestFile import FileSlim, DuplicatedFiles, select_the_best
 
 MATCHES_FALSE_POSITIVE = "MATCH_FALSE"  # Tag to add to scene when is not a match
 MATCHES_FILTERED = ""  # Tag to use to filter scenes to process
@@ -43,9 +43,9 @@ class Scene:
     id: int
     organized: bool
     tags: List[Tags]
-    files: List[FindBestFile.FileSlim]
+    files: List[FileSlim]
     title: str = ""
-    duplicated_files: FindBestFile.DuplicatedFiles = None
+    duplicated_files: DuplicatedFiles = None
 
 
 @dataclass
@@ -54,6 +54,7 @@ class SceneFilter:
     tags_includes: List[str]
     tags_excludes: List[str]
     file_count: int = 0
+
 
 # TODO: complete this dataclass
 @dataclass
@@ -133,30 +134,30 @@ def initialize() -> (StashInterface, dict):
     return stash, config["Path"]
 
 
-def get_scene_duplicated_files(distance: PhashDistance, s: StashInterface) -> list[FindBestFile.DuplicatedFiles]:
+def get_scene_duplicated_files(distance: PhashDistance, s: StashInterface) -> list[DuplicatedFiles]:
     # Duplicates
     log("REQUEST DUPLICATE SCENES FOUND")
     data = s.find_duplicate_scenes(distance=distance, fragment='...Scene')
     log("DUPLICATE SCENES FOUND")
     # log_block(data, "DUPLICATE SCENES DETAILS")
-    compared_files_list: list[FindBestFile.DuplicatedFiles] = []
+    compared_files_list: list[DuplicatedFiles] = []
     for element in data:
-        duplicated_files_slim: list[FindBestFile.FileSlim] = list()
+        duplicated_files_slim: list[FileSlim] = list()
         for item in element:
-            file_slim = FindBestFile.FileSlim(id=item.get("id"), organized=item.get("organized"),
-                                              width=item.get("files")[0].get("width"),
-                                              video_codec=item.get("files")[0].get("video_codec"),
-                                              size=item.get("files")[0].get("size"),
-                                              duration=item.get("files")[0].get("duration"),
-                                              basename=item.get("files")[0].get("basename"),
-                                              format=item.get("files")[0].get("format"),
-                                              oshash=parse("$.files[0].fingerprints[?type=='oshash'].value").find(item)[
-                                                  0].value,
-                                              phash=parse("$.files[0].fingerprints[?type=='phash'].value").find(item)[
-                                                  0].value
-                                              )
+            file_slim = FileSlim(id=item.get("id"), organized=item.get("organized"),
+                                 width=item.get("files")[0].get("width"),
+                                 video_codec=item.get("files")[0].get("video_codec"),
+                                 size=item.get("files")[0].get("size"),
+                                 duration=item.get("files")[0].get("duration"),
+                                 basename=item.get("files")[0].get("basename"),
+                                 format=item.get("files")[0].get("format"),
+                                 oshash=parse("$.files[0].fingerprints[?type=='oshash'].value").find(item)[
+                                     0].value,
+                                 phash=parse("$.files[0].fingerprints[?type=='phash'].value").find(item)[
+                                     0].value
+                                 )
             duplicated_files_slim.append(file_slim)
-        compared_files_list.append(FindBestFile.select_the_best(duplicated_files_slim))
+        compared_files_list.append(select_the_best(duplicated_files_slim))
     return compared_files_list
 
 
@@ -340,31 +341,31 @@ def find_scenes_by_scene_filter(s, scene_filter_str, scenes_number_max=0) -> lis
         for elem in data:
             scene_list.append(Scene(id=elem["id"], organized=elem["organized"], title=elem["title"],
                                     tags=[Tags(id=tag["id"], name=tag["name"]) for tag in elem["tags"]],
-                                    files=[FindBestFile.FileSlim(id=file["id"], organized=elem["organized"],
-                                                                 width=file["width"], video_codec=file["video_codec"],
-                                                                 size=file["size"], duration=file["duration"],
-                                                                 basename=file["basename"],
-                                                                 format=file["format"],
-                                                                 oshash=
-                                                                 parse("$.fingerprints[?type=='oshash'].value").find(
-                                                                     file)[0].value,
-                                                                 phash=
-                                                                 parse("$.fingerprints[?type=='phash'].value").find(
-                                                                     file)[0].value
-                                                                 ) for file
+                                    files=[FileSlim(id=file["id"], organized=elem["organized"],
+                                                    width=file["width"], video_codec=file["video_codec"],
+                                                    size=file["size"], duration=file["duration"],
+                                                    basename=file["basename"],
+                                                    format=file["format"],
+                                                    oshash=
+                                                    parse("$.fingerprints[?type=='oshash'].value").find(
+                                                        file)[0].value,
+                                                    phash=
+                                                    parse("$.fingerprints[?type=='phash'].value").find(
+                                                        file)[0].value
+                                                    ) for file
                                            in
-                                           elem["files"]], duplicated_files=FindBestFile.select_the_best(
-                    [FindBestFile.FileSlim(id=file["id"], organized=elem["organized"],
-                                           width=file["width"], video_codec=file["video_codec"],
-                                           size=file["size"], duration=file["duration"], basename=file["basename"],
-                                           format=file["format"],
-                                           oshash=
-                                           parse("$.fingerprints[?type=='oshash'].value").find(
-                                               file)[0].value,
-                                           phash=
-                                           parse("$.fingerprints[?type=='phash'].value").find(
-                                               file)[0].value
-                                           ) for file in
+                                           elem["files"]], duplicated_files=select_the_best(
+                    [FileSlim(id=file["id"], organized=elem["organized"],
+                              width=file["width"], video_codec=file["video_codec"],
+                              size=file["size"], duration=file["duration"], basename=file["basename"],
+                              format=file["format"],
+                              oshash=
+                              parse("$.fingerprints[?type=='oshash'].value").find(
+                                  file)[0].value,
+                              phash=
+                              parse("$.fingerprints[?type=='phash'].value").find(
+                                  file)[0].value
+                              ) for file in
                      elem["files"]])))
         page_number += 1
         if len(scene_list) >= scenes_number_max != 0:
