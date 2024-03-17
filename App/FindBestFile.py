@@ -27,6 +27,9 @@ class DuplicatedFiles:
     to_delete: List[int]  # list of files to delete
     to_delete_size: float  # size of files to delete
 
+#TODO: implementare l'automatismo per valorizzare bene le varibili interne come descritto qui https://www.youtube.com/watch?v=5mMpM8zK4pY
+#TODO: gestione dei file senza phash come per i corrotti
+
 
 def check_organized(array: list[FileSlim]):
     first_value = array[0].organized

@@ -1,3 +1,4 @@
+import argparse
 import concurrent.futures
 import configparser
 import json
@@ -685,18 +686,29 @@ if __name__ == "__main__":
     # TODO Scheduling all the programs
     # TODO reorganize the log call for the three programs
     # TODO unify the logging anc configuration system
+    # TODO fix corrupted files without PHASH
 
     stash, paths = initialize()
 
-    delete_duplicates_scenes(stash, PhashDistance.EXACT, False)
-    delete_duplicates_scenes(stash, PhashDistance.HIGH, False)
-    delete_duplicates_scenes(stash, PhashDistance.MEDIUM, False)
-    delete_duplicates_scenes(stash, PhashDistance.LOW, False)
-    delete_duplicates_files(stash, False)
-    process_corrupted(stash, SCENES_MAX, False)
-    process_trash(stash, SCENES_MAX, paths, False)
-    process_matches(stash, False)
-    remove_matches(stash, False)
-    remove_false_matches(stash, False)
-    process_scan(stash)
-    # test_stash(stash)
+    parser = argparse.ArgumentParser(description='Manage Stash operations')
+    parser.add_argument('--delete_duplicates_scenes', action='store_true', help='Delete duplicate scenes')
+    parser.add_argument('--process_files', action='store_true', help='Process files')
+    parser.add_argument('--scan', action='store_true', help='Scan')
+    args = parser.parse_args()
+
+    if args.delete_duplicates_scenes:
+        delete_duplicates_scenes(stash, PhashDistance.EXACT, False)
+        delete_duplicates_scenes(stash, PhashDistance.HIGH, False)
+        delete_duplicates_scenes(stash, PhashDistance.MEDIUM, False)
+        delete_duplicates_scenes(stash, PhashDistance.LOW, False)
+        delete_duplicates_files(stash, False)
+
+    if args.process_files:
+        # process_corrupted(stash, SCENES_MAX, False)
+        process_trash(stash, SCENES_MAX, paths, False)
+        process_matches(stash, False)
+        remove_matches(stash, False)
+        remove_false_matches(stash, False)
+
+    if args.scan:
+        process_scan(stash)
