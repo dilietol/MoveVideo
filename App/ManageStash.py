@@ -687,6 +687,7 @@ if __name__ == "__main__":
     # TODO reorganize the log call for the three programs
     # TODO unify the logging anc configuration system
     # TODO fix corrupted files without PHASH
+    # TODO fix log timezone
 
     stash, paths = initialize()
 
