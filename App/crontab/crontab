@@ -1,7 +1,7 @@
 # START CRON JOB
-*/20 * * * * cd /app && /usr/local/bin/python3 MoveVideo.py > /proc/1/fd/1 2>/proc/1/fd/2
-*/10 * * * * cd /app && /usr/local/bin/python3 ManageQBittorent.py > /proc/1/fd/1 2>/proc/1/fd/2
-5 * * * * cd /app && /usr/local/bin/python3 ManageStash.py --delete_duplicates_scenes > /proc/1/fd/1 2>/proc/1/fd/2
-45 * * * * cd /app && /usr/local/bin/python3 ManageStash.py --scan > /proc/1/fd/1 2>/proc/1/fd/2
-15,35,55 * * * * cd /app && /usr/local/bin/python3 ManageStash.py --process_files > /proc/1/fd/1 2>/proc/1/fd/2
+*/20 * * * * cd /app && /usr/local/bin/python3 MoveVideo.py > /proc/1/fd/1 2>&1
+*/10 * * * * cd /app && /usr/local/bin/python3 ManageQBittorent.py > /proc/1/fd/1 2>&1
+5 * * * * cd /app && /usr/local/bin/python3 ManageStash.py --delete_duplicates_scenes > /proc/1/fd/1 2>&1
+45 * * * * cd /app && /usr/local/bin/python3 ManageStash.py --scan > /proc/1/fd/1 2>&1
+15,35,55 * * * * cd /app && /usr/local/bin/python3 ManageStash.py --process_files > /proc/1/fd/1 2>&1
 # END CRON JOB
