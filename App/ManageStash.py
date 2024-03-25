@@ -5,14 +5,13 @@ import json
 import logging
 import os
 import time
-from dataclasses import asdict, is_dataclass, dataclass
+from dataclasses import asdict, is_dataclass, dataclass, field
 from typing import List
 
 from stashapi.stash_types import PhashDistance
 from stashapi.stashapp import StashInterface
-from jsonpath_ng.ext import parse
 
-from FindBestFile import FileSlim, DuplicatedFiles, select_the_best
+from FindBestFile import FileSlim, DuplicatedFiles
 
 MATCHES_FALSE_POSITIVE = "MATCH_FALSE"  # Tag to add to scene when is not a match
 MATCHES_FILTERED = ""  # Tag to use to filter scenes to process
@@ -46,7 +45,10 @@ class Scene:
     tags: List[Tags]
     files: List[FileSlim]
     title: str = ""
-    duplicated_files: DuplicatedFiles = None
+    duplicated_files: DuplicatedFiles = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.duplicated_files = DuplicatedFiles(files=self.files)
 
 
 @dataclass
@@ -145,21 +147,30 @@ def get_scene_duplicated_files(distance: PhashDistance, s: StashInterface) -> li
     for element in data:
         duplicated_files_slim: list[FileSlim] = list()
         for item in element:
-            file_slim = FileSlim(id=item.get("id"), organized=item.get("organized"),
-                                 width=item.get("files")[0].get("width"),
-                                 video_codec=item.get("files")[0].get("video_codec"),
-                                 size=item.get("files")[0].get("size"),
-                                 duration=item.get("files")[0].get("duration"),
-                                 basename=item.get("files")[0].get("basename"),
-                                 format=item.get("files")[0].get("format"),
-                                 oshash=parse("$.files[0].fingerprints[?type=='oshash'].value").find(item)[
-                                     0].value,
-                                 phash=parse("$.files[0].fingerprints[?type=='phash'].value").find(item)[
-                                     0].value
-                                 )
+            file_slim = extract_fileslim(item)
             duplicated_files_slim.append(file_slim)
-        compared_files_list.append(select_the_best(duplicated_files_slim))
+        compared_files_list.append(DuplicatedFiles(files=duplicated_files_slim))
     return compared_files_list
+
+
+def extract_fileslim(item) -> FileSlim:
+    # TODO manage multiple files
+    phash = oshash = None
+    for elem in item.get("files")[0].get("fingerprints"):
+        if elem.get("type") == "phash":
+            phash = elem.get("value")
+        if elem.get("type") == "oshash":
+            oshash = elem.get("value")
+    return FileSlim(id=item.get("id"), organized=item.get("organized"),
+                    width=item.get("files")[0].get("width"),
+                    video_codec=item.get("files")[0].get("video_codec"),
+                    size=item.get("files")[0].get("size"),
+                    duration=item.get("files")[0].get("duration"),
+                    basename=item.get("files")[0].get("basename"),
+                    format=item.get("files")[0].get("format"),
+                    oshash=oshash,
+                    phash=phash
+                    )
 
 
 def delete_duplicates_scenes(s: StashInterface, p: PhashDistance = PhashDistance.EXACT, dry_run=True):
@@ -343,32 +354,7 @@ def find_scenes_by_scene_filter(s, scene_filter_str, scenes_number_max=0) -> lis
         for elem in data:
             scene_list.append(Scene(id=elem["id"], organized=elem["organized"], title=elem["title"],
                                     tags=[Tags(id=tag["id"], name=tag["name"]) for tag in elem["tags"]],
-                                    files=[FileSlim(id=file["id"], organized=elem["organized"],
-                                                    width=file["width"], video_codec=file["video_codec"],
-                                                    size=file["size"], duration=file["duration"],
-                                                    basename=file["basename"],
-                                                    format=file["format"],
-                                                    oshash=
-                                                    parse("$.fingerprints[?type=='oshash'].value").find(
-                                                        file)[0].value,
-                                                    phash=
-                                                    parse("$.fingerprints[?type=='phash'].value").find(
-                                                        file)[0].value
-                                                    ) for file
-                                           in
-                                           elem["files"]], duplicated_files=select_the_best(
-                    [FileSlim(id=file["id"], organized=elem["organized"],
-                              width=file["width"], video_codec=file["video_codec"],
-                              size=file["size"], duration=file["duration"], basename=file["basename"],
-                              format=file["format"],
-                              oshash=
-                              parse("$.fingerprints[?type=='oshash'].value").find(
-                                  file)[0].value,
-                              phash=
-                              parse("$.fingerprints[?type=='phash'].value").find(
-                                  file)[0].value
-                              ) for file in
-                     elem["files"]])))
+                                    files=[extract_fileslim(elem)]))
         page_number += 1
         if len(scene_list) >= scenes_number_max != 0:
             others = False
@@ -685,10 +671,6 @@ def process_trash(s: StashInterface, scenes_number_max, remote_paths, dry_run=Tr
 
 if __name__ == "__main__":
     # TODO delete Shoko integration in an other class
-    # TODO Scheduling all the programs
-    # TODO reorganize the log call for the three programs
-    # TODO unify the logging anc configuration system
-    # TODO fix corrupted files without PHASH
     # TODO fix log timezone
 
     stash, paths = initialize()
