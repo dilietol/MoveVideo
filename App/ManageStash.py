@@ -137,9 +137,9 @@ def initialize() -> (StashInterface, dict):
 
 def get_scene_duplicated_files(distance: PhashDistance, s: StashInterface) -> list[DuplicatedFiles]:
     # Duplicates
-    log("REQUEST DUPLICATE SCENES FOUND")
+    log("DUPLICATE SCENES FOUND REQUEST")
     data = s.find_duplicate_scenes(distance=distance, fragment='...Scene')
-    log("DUPLICATE SCENES FOUND")
+    log("DUPLICATE SCENES FOUND RESPONSE")
     # log_block(data, "DUPLICATE SCENES DETAILS")
     compared_files_list: list[DuplicatedFiles] = []
     for element in data:
@@ -253,7 +253,7 @@ def get_stashbox_list(s: StashInterface, tags_list: list[Tags]) -> list[StashBox
     return stashbox_list
 
 
-def update_tags(scene_list: List[Scene], s, dry_run=True):
+def update_tags(scene_list: List[Scene], s: StashInterface, dry_run=True):
     counter = 0
     for scene in scene_list:
         counter += 1
@@ -273,7 +273,7 @@ def update_tags(scene_list: List[Scene], s, dry_run=True):
             log("Scenes updated: " + str(counter))
 
 
-def remove_tags(scene_list: List[Scene], s, tag_list: List[Tags], dry_run=True):
+def remove_tags(scene_list: List[Scene], s: StashInterface, tag_list: List[Tags], dry_run=True):
     for scene in scene_list:
         for tag_elem in tag_list:
             if tag_elem.name in [x.name for x in scene.tags]:
@@ -305,12 +305,13 @@ def find_scene_matches(s, scene_list: List[Scene], stashbox_list: List[StashBox]
     return result
 
 
-def call_stash_api(new_scene, s, scene, stashbox):
+def call_stash_api(new_scene, s, scene, stashbox) -> bool:
     data = None
     found = False
-    for i in range(10):
+    for i in range(3):
         try:
             data = s.scrape_scene({"stash_box_index": stashbox.id}, {"scene_id": scene.id})
+            break
         except Exception as e:
             log("FAILED TO SCRAPE SCENE %s FROM STASHBOX %s" % (scene.id, stashbox.name))
             print(f"Received a GraphQL exception : {e}")
@@ -480,9 +481,10 @@ def process_test(s: StashInterface, dry_run=True):
     for scene in scene_list:
         data = None
         found = False
-        for i in range(10):
+        for i in range(3):
             try:
                 data = s.scrape_scene({"stash_box_index": stashbox.id}, {"scene_id": scene.id})
+                break
             except Exception as e:
                 log("FAILED TO SCRAPE SCENE %s FROM STASHBOX %s" % (scene.id, stashbox.name))
                 print(f"Received a GraphQL exception : {e}")
