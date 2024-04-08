@@ -620,24 +620,11 @@ def process_corrupted(s: StashInterface, scenes_number_max, dry_run=True):
                              "modifier": "IS_NULL"}
                         }
     scene_list = find_scenes_by_scene_filter(s, scene_filter_str, scenes_number_max)
-    # log_block(scene_list, "SCENES")
 
-    log("Dry run: " + str(dry_run))
-    log("Number of scenes: " + str(len(scene_list)))
-
-    for scene in scene_list:
-        if not dry_run:
-            for i in range(3):
-                try:
-                    s.destroy_scene(scene.id, False)
-                    log("DELETED SCENE %s" % scene.id)
-                    break
-                except Exception as e:
-                    log("FAILED TO DELETE SCENE %s" % scene.id)
-                    print(f"Received a GraphQL exception : {e}")
-                    time.sleep(4)
-        else:
-            log("Scene to delete: " + str(scene.id))
+    if len(scene_list) == 0:
+        log("No scenes to delete")
+    else:
+        destroy_scenes(s, dry_run, scene_list, False)
     log_end("PROCESS CORRUPTED")
 
 
@@ -648,16 +635,23 @@ def process_trash(s: StashInterface, scenes_number_max, remote_paths, dry_run=Tr
                              "modifier": "INCLUDES"}
                         }
     scene_list = find_scenes_by_scene_filter(s, scene_filter_str, scenes_number_max)
-    # log_block(scene_list, "SCENES")
 
+    if len(scene_list) == 0:
+        log("No scenes to delete")
+    else:
+        destroy_scenes(s, dry_run, scene_list, True)
+    log_end("PROCESS TRASH")
+
+
+def destroy_scenes(s: StashInterface, dry_run: bool, scene_list: List[Scene], delete: bool = False):
+    log_start("DESTROY SCENES")
     log("Dry run: " + str(dry_run))
-    log("Number of scenes: " + str(len(scene_list)))
-
+    log("Number of scenes to delete: " + str(len(scene_list)))
     for scene in scene_list:
         if not dry_run:
             for i in range(3):
                 try:
-                    s.destroy_scene(scene.id, True)
+                    s.destroy_scene(scene.id, delete)
                     log("DELETED SCENE %s" % scene.id)
                     break
                 except Exception as e:
@@ -666,7 +660,7 @@ def process_trash(s: StashInterface, scenes_number_max, remote_paths, dry_run=Tr
                     time.sleep(4)
         else:
             log("Scene to delete: " + str(scene.id))
-    log_end("PROCESS TRASH")
+    log_end("DESTROY SCENES")
 
 
 if __name__ == "__main__":
