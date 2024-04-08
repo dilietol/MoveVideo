@@ -209,6 +209,7 @@ def delete_duplicates_scenes(s: StashInterface, p: PhashDistance = PhashDistance
     log("counters for valid duplicates: " + json.dumps(counters_ok))
     log("counters for not valid duplicates: " + json.dumps(counters))
 
+    # TODO refactor in order to use the destroy_scenes method
     for elem in deleted_files_id_list:
         if not dry_run:
             for i in range(3):
