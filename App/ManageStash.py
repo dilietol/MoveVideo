@@ -30,6 +30,7 @@ class StashBox:
     name: str
     tag_name: str
     tag_id: int
+    url: str = None
 
 
 @dataclass
@@ -59,11 +60,146 @@ class SceneFilter:
     file_count: int = 0
 
 
+@dataclass
+class Fingerprints:
+    json: str
+    algorithm: str = field(init=False)
+    hash: str = field(init=False)
+    duration: int = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.algorithm = self.json["algorithm"]
+        self.hash = self.json["hash"]
+        self.duration = self.json["duration"]
+        self.json = None
+
+
+@dataclass
+class Studio:
+    json: str
+    stored_id: str = field(init=False)
+    name: str = field(init=False)
+    url: str = field(init=False)
+    parent: str = field(init=False)
+    image: str = field(init=False)
+    remote_site_id: str = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.stored_id = self.json["stored_id"]
+        self.name = self.json["name"]
+        self.url = self.json["url"]
+        self.parent = self.json["parent"]
+        self.image = self.json["image"]
+        self.remote_site_id = self.json["remote_site_id"]
+        self.json = None
+
+
+@dataclass
+class Performer:
+    json: str
+    stored_id: str = field(init=False)
+    name: str = field(init=False)
+    disambiguation: str = field(init=False)
+    gender: str = field(init=False)
+    url: str = field(init=False)
+    twitter: str = field(init=False)
+    instagram: str = field(init=False)
+    birthdate: str = field(init=False)
+    ethnicity: str = field(init=False)
+    country: str = field(init=False)
+    eye_color: str = field(init=False)
+    height: str = field(init=False)
+    measurements: str = field(init=False)
+    fake_tits: str = field(init=False)
+    penis_length: str = field(init=False)
+    circumcised: str = field(init=False)
+    career_length: str = field(init=False)
+    tattoos: str = field(init=False)
+    piercings: str = field(init=False)
+    aliases: str = field(init=False)
+    images: List[str] = field(init=False)
+    details: str = field(init=False)
+    death_date: str = field(init=False)
+    hair_color: str = field(init=False)
+    weight: str = field(init=False)
+    remote_site_id: str = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.stored_id = self.json["stored_id"]
+        self.name = self.json["name"]
+        self.disambiguation = self.json["disambiguation"]
+        self.gender = self.json["gender"]
+        self.url = self.json["url"]
+        self.twitter = self.json["twitter"]
+        self.instagram = self.json["instagram"]
+        self.birthdate = self.json["birthdate"]
+        self.ethnicity = self.json["ethnicity"]
+        self.country = self.json["country"]
+        self.eye_color = self.json["eye_color"]
+        self.height = self.json["height"]
+        self.measurements = self.json["measurements"]
+        self.fake_tits = self.json["fake_tits"]
+        self.penis_length = self.json["penis_length"]
+        self.circumcised = self.json["circumcised"]
+        self.career_length = self.json["career_length"]
+        self.tattoos = self.json["tattoos"]
+        self.piercings = self.json["piercings"]
+        self.aliases = self.json["aliases"]
+        self.images = self.json["images"]
+        self.details = self.json["details"]
+        self.death_date = self.json["death_date"]
+        self.hair_color = self.json["hair_color"]
+        self.weight = self.json["weight"]
+        self.remote_site_id = self.json["remote_site_id"]
+        self.json = None
+
+
 # TODO: complete this dataclass
 @dataclass
 class Match:
-    title: str
-    details: str
+    json: str
+    title: str = field(init=False)
+    code: str = field(init=False)
+    details: str = field(init=False)
+    director: str = field(init=False)
+    urls: List[str] = field(init=False)
+    date: str = field(init=False)
+    image: str = field(init=False)
+    file: str = field(init=False)
+    studio: Studio = field(init=False)
+    performers: List[Performer] = field(init=False)
+    remote_site_id: str = field(init=False)
+    duration: int = field(init=False)
+    fingerprints: List[Fingerprints] = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.title = self.json["title"]
+        self.code = self.json["code"]
+        self.details = self.json["details"]
+        self.director = self.json["director"]
+        self.date = self.json["date"]
+        self.urls = self.json["urls"]
+        self.image = None  # TODO: add image
+        self.file = self.json["file"]
+        self.studio = Studio(json=self.json["studio"])
+        self.performers = [Performer(json=p) for p in self.json["performers"]] if self.json[
+                                                                                      "performers"] is not None else []
+        self.remote_site_id = self.json["remote_site_id"]
+        self.duration = self.json["duration"]
+        self.fingerprints = [Fingerprints(json=f) for f in self.json["fingerprints"]]
+        self.json = None  # TODO: remove for problem determination
+
+
+@dataclass
+class Scrape:
+    s: StashInterface
+    scene: Scene
+    stashbox: StashBox
+    matches: List[Match] = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.matches = find_matches(self.s, self.scene, self.stashbox)
+        self.s = None
 
 
 MATCHES_STASHBOX: List[StashBox] = [
@@ -123,6 +259,7 @@ def parse_config():
 
 
 def initialize() -> (StashInterface, dict):
+    # TODO reorganize stash interface in order to move this initialization in a package/file in the future and move there all the method that use stash interface; leaving in this file only the processing methods.
     global stash
     config = parse_config()
     # Set up Stash
@@ -138,7 +275,6 @@ def initialize() -> (StashInterface, dict):
 
 
 def get_scene_duplicated_files(distance: PhashDistance, s: StashInterface) -> list[DuplicatedFiles]:
-    # Duplicates
     log("DUPLICATE SCENES FOUND REQUEST")
     data = s.find_duplicate_scenes(distance=distance, fragment='...Scene')
     log("DUPLICATE SCENES FOUND RESPONSE")
@@ -258,10 +394,12 @@ def get_stashbox_list(s: StashInterface, tags_list: list[Tags]) -> list[StashBox
     for elem in stashbox_connections:
         data = s.get_stashbox_connection(elem["endpoint"])
         elem["id"] = data["index"]
+        elem["url"] = elem["endpoint"]
     for stashbox in stashbox_list:
         for conn in stashbox_connections:
             if stashbox.name == conn.get("name"):
                 stashbox.id = conn.get("id")
+                stashbox.url = conn.get("url")
     return stashbox_list
 
 
@@ -457,35 +595,97 @@ def process_test(s: StashInterface, dry_run=True):
     stashbox_list: List[StashBox] = get_stashbox_list(s, tags_list)
     log_block(stashbox_list, "STASHBOX LIST")
 
-    scene_filter = SceneFilter(organized=False, tags_includes=["MATCH_STASHDB"],
-                               tags_excludes=([MATCHES_FALSE_POSITIVE,
-                                               MATCHES_DONE]))
-    scene_list = find_scenes_by_tags(s, tags_list, scene_filter, 1)
-    log_block(scene_list, "FIND SCENES")
-
-    log_start("SCRAPE SCENE")
-    stashbox = stashbox_list[0]
-    for scene in scene_list:
-        data = None
-        found = False
-        for i in range(3):
-            try:
-                data = s.scrape_scene({"stash_box_index": stashbox.id}, {"scene_id": scene.id})
-                break
-            except Exception as e:
-                log("FAILED TO SCRAPE SCENE %s FROM STASHBOX %s" % (scene.id, stashbox.name))
-                print(f"Received a GraphQL exception : {e}")
-                time.sleep(4)
-                data = None
-        if data is not None:
-            log("Scene %s found in %s" % (scene.id, stashbox.name))
-            log(json.dumps(data, indent=4))
-            found = True
-        else:
-            log("Scene %s NOT found" % scene.id)
-    log_end("SCRAPE SCENE")
+    for stashbox in filter(lambda x: x.tag_name in ["MATCH_STASHDB", "MATCH_PORNDB"], stashbox_list):
+        scrape_create_performer_studio_for_stash(s, stashbox, tags_list, 20)
 
     log_end("PROCESS Test")
+
+
+def scrape_create_performer_studio_for_stash(s: StashInterface, stashbox: StashBox, tags_list, scenes_number_max=20):
+    scene_filter = SceneFilter(organized=False, tags_includes=[stashbox.tag_name],
+                               tags_excludes=([MATCHES_FALSE_POSITIVE]))
+    scene_list = find_scenes_by_tags(s, tags_list, scene_filter, scenes_number_max)
+    # log_block(scene_list, "FIND SCENES")
+    log_start("SCRAPE SCENE for stashbox: " + stashbox.name)
+    scrape_list: List[Scrape] = []
+    for scene in scene_list:
+        scrape = Scrape(s, scene, stashbox)
+        scrape_list.append(scrape)
+        log(scrape)
+        for match in scrape.matches:
+            log(match)
+            for performer in match.performers:
+                log(performer)
+                if performer.stored_id is None:
+                    create_performer(s, stashbox, performer)
+            studio: Studio = match.studio
+            log(studio)
+            if studio.stored_id is None:
+                create_studio(s, stashbox, studio)
+    log_end("SCRAPE SCENE for stashbox: " + stashbox.name)
+
+
+def create_studio(s: StashInterface, stashbox: StashBox, studio: Studio) -> None:
+    s.create_studio(
+        {"name": studio.name, "url": studio.url,
+         "parent_id": studio.parent.get("stored_id") if studio.parent is not None else None,
+         "image": studio.image,
+         "stash_ids": [{"endpoint": stashbox.url, "stash_id": studio.remote_site_id}]})
+    log("STUDIO CREATED: " + studio.name)
+
+
+def create_performer(s: StashInterface, stashbox: StashBox, performer: Performer) -> None:
+    s.create_performer(
+        {"name": performer.name, "disambiguation": performer.disambiguation, "url": performer.url,
+         "gender": performer.gender, "birthdate": performer.birthdate, "ethnicity": performer.ethnicity,
+         "country": performer.country, "eye_color": performer.eye_color, "height_cm": performer.height,
+         "measurements": performer.measurements, "fake_tits": performer.fake_tits,
+         "penis_length": performer.penis_length, "circumcised": performer.circumcised,
+         "career_length": performer.career_length, "tattoos": performer.tattoos,
+         "piercings": performer.piercings,
+         "alias_list": performer.aliases.split(",") if performer.aliases is not None else [],
+         "twitter": performer.twitter, "instagram": performer.instagram,
+         "favorite": False, "image": performer.images[0] if len(performer.images) > 0 else None,
+         "details": performer.details, "death_date": performer.death_date,
+         "hair_color": performer.hair_color, "weight": performer.weight,
+         "stash_ids": [{"endpoint": stashbox.url, "stash_id": performer.remote_site_id}]})
+    log("PERFORMER CREATED: " + performer.name)
+
+
+def find_matches(s: StashInterface, scene: Scene, stashbox: StashBox) -> List[Match]:
+    """
+    Finds matches for a given scene and stashbox by scraping data.
+
+    Args:
+        s (StashInterface): The interface used for scraping.
+        scene (Scene): The scene to find matches for.
+        stashbox (StashBox): The stashbox to search for matches.
+
+    Returns:
+        List[Match]: A list of matches found for the scene and stashbox.
+    """
+    data = None
+    result: List[Match] = list()
+
+    # Try scraping the scene data up to 3 times
+    for _ in range(3):
+        try:
+            data = s.scrape_scene({"stash_box_index": stashbox.id}, {"scene_id": scene.id})
+            break
+        except Exception as e:
+            log("FAILED TO SCRAPE SCENE %s FROM STASHBOX %s" % (scene.id, stashbox.name))
+            print(f"Received a GraphQL exception : {e}")
+            time.sleep(4)
+            data = None
+
+    if data is not None:
+        # Process the scraped data and create Match objects
+        for elem in data:
+            result.append(Match(json=elem))
+    else:
+        log("Scene %s NOT found" % scene.id)
+
+    return result
 
 
 def remove_matches(s: StashInterface, dry_run=True):
@@ -667,6 +867,7 @@ def destroy_scenes(s: StashInterface, dry_run: bool, scene_list: List[Scene], de
 if __name__ == "__main__":
     # TODO delete Shoko integration in an other class
     # TODO fix log timezone
+    # TODO add a method to remove tag UNKOWN from all scenes
 
     stash, paths = initialize()
 
