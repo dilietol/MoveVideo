@@ -109,6 +109,7 @@ def is_duration_correct(array: List[FileSlim]) -> bool:
     if first_value < 600:
         return False
     for elem in array:
+        # TODO: review this rule because is very taffy, in other cases (like fingerprints) we used a 3/1000 difference
         if abs((float(elem.duration) - first_value) / first_value) > 0.0005:
             return False
     return True
