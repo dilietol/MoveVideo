@@ -156,8 +156,8 @@ def move_files(dir_out=DIR_OUT):
     log(source_key_list)
     #    log("Destination directories:")
     #    log(destination_dir_list)
-    log("Destination keys:")
-    log(destination_key_list)
+    # log("Destination keys:")
+    # log(destination_key_list)
 
     found_key_list = list(set(source_key_list) & set(destination_key_list))
     missing_key_list = list(set(source_key_list) - set(destination_key_list))
