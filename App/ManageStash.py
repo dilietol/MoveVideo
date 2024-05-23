@@ -218,15 +218,16 @@ class Scrape:
             self.calc_phashes_matches_exact = sum(1 for x in phashes if x.hash == phash)
 
             n = 0
-            for x in phashes:
-                diff = 0
-                for i in range(min(len(x.hash), len(phash))):
-                    if x.hash[i] != phash[i]:
-                        diff += 1
-                        if diff >= 4:
-                            break
-                if diff < 4:
-                    n += 1
+            if phash is not None:
+                for x in phashes:
+                    diff = 0
+                    for i in range(min(len(x.hash), len(phash))):
+                        if x.hash[i] != phash[i]:
+                            diff += 1
+                            if diff >= 4:
+                                break
+                    if diff < 4:
+                        n += 1
             self.calc_phashes_matches_number = n
             self.calc_match = calc_match(self)
         else:
@@ -552,7 +553,7 @@ def find_scenes_by_scene_filter(s, scene_filter_str, scenes_number_max=0) -> lis
             page_dim = scenes_number_max - len(scene_list)
         log("Fetching page number " + str(page_number))
         data = s.find_scenes(f=scene_filter_str,
-                             filter={"per_page": page_dim, "page": page_number, "sort": "id"},
+                             filter={"per_page": page_dim, "page": page_number, "sort": "id", "direction": "DESC"},
                              get_count=False)
         # log_block(data, "Data")
         for elem in data:
@@ -1143,7 +1144,7 @@ def process_reset_scene_path(s: StashInterface, path: str, dry_run=True):
     scene_filter = SceneFilter(organized=False, tags_includes=[MATCHES_DONE],
                                tags_excludes=([MATCHES_FILTERED, MATCHES_FALSE_POSITIVE]),
                                path=path)
-    scene_list = find_scenes_by_tags_path(s, tags_list, scene_filter, 5000)
+    scene_list = find_scenes_by_tags_path(s, tags_list, scene_filter, 500)
     remove_tags(scene_list, s, [x for x in tags_list if x.name in [MATCHES_DONE]], dry_run)
     log_end("PROCESS RESET SCENE PATH")
 
