@@ -1,6 +1,6 @@
 FROM ubuntu:24.04
 
-RUN apt-get update && apt-get upgrade && apt-get -y install cron vim python3
+RUN apt update && apt upgrade && apt -y install cron vim python3
 RUN python3 --version
 
 WORKDIR /app
