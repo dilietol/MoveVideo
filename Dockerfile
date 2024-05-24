@@ -1,11 +1,13 @@
 FROM ubuntu:24.04
 
-RUN apt-get update && apt-get -y install cron vim python3.12 python3-distutils python3-pip python3-apt
+RUN apt-get update && apt-get upgrade && apt-get -y install cron vim python3
+RUN python3 --version
 
 WORKDIR /app
 
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
+
 
 COPY App/*.py .
 COPY App/config/config.toml config/config.toml
