@@ -1,6 +1,5 @@
 FROM ubuntu:24.04
 
-RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt -y update
 RUN apt -y install cron vim python3.12 python3-pip
 RUN python3 --version
