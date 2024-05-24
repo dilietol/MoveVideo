@@ -1,13 +1,15 @@
 FROM ubuntu:24.04
 
-RUN apt -y update && apt -y upgrade && apt -y install cron vim python3-full python3-pip
+RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt -y update  \
+RUN apt -y install cron vim python3.12 python3-pip
 RUN python3 --version
 
 RUN python3 -m venv /app
 WORKDIR /app
 
 COPY requirements.txt requirements.txt
-RUN pip3 install -r requirements.txt
+RUN python3 -m pip install -r requirements.txt
 
 
 COPY App/*.py .
