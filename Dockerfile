@@ -3,12 +3,14 @@ FROM ubuntu:24.04
 RUN apt -y update
 RUN apt -y install cron vim python3-full python3-pip python3-venv
 RUN python3 --version
+RUN pip3 --version
 
-RUN python3 -m venv /app
 WORKDIR /app
+RUN python3 -m venv movevideo
+RUN source movevideo/activate
 
 COPY requirements.txt requirements.txt
-RUN /app/pip3 install -r requirements.txt
+RUN pip install -r requirements.txt
 
 
 COPY App/*.py .
