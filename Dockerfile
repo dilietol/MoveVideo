@@ -1,6 +1,6 @@
 FROM ubuntu:24.04
 
-RUN apt -y update && apt -y upgrade && apt -y install cron vim python3-full
+RUN apt -y update && apt -y upgrade && apt -y install cron vim python3-full python3-pip
 RUN python3 --version
 
 RUN python3 -m venv /app
