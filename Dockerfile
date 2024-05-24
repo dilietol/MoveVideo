@@ -8,7 +8,7 @@ RUN python3 -m venv /app
 WORKDIR /app
 
 COPY requirements.txt requirements.txt
-RUN python3 -m pip install -r requirements.txt
+RUN /app/pip install -r requirements.txt
 
 
 COPY App/*.py .
