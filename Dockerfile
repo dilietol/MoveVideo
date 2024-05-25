@@ -1,5 +1,7 @@
 FROM python:3.12
 
+RUN apt-get update && apt-get -y install cron vim
+
 WORKDIR /app
 
 COPY requirements.txt requirements.txt
