@@ -271,7 +271,9 @@ MATCHES_STASHBOX: List[StashBox] = [
 logger = logging.getLogger("manage-stash")
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
-ch.setFormatter(logging.Formatter("%(asctime)s %(name)s %(message)s"))
+formatter = logging.Formatter("%(asctime)s %(name)s %(message)s")
+formatter.converter = time.localtime
+ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 

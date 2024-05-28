@@ -1,5 +1,6 @@
 import json
 import os
+import time
 
 import qbittorrentapi
 from qbittorrentapi import Client
@@ -10,7 +11,9 @@ logger = logging.getLogger("QBitTorrentClient")
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 # ch.setLevel(logging.INFO)
-ch.setFormatter(logging.Formatter("%(asctime)s %(name)s %(message)s"))
+formatter = logging.Formatter("%(asctime)s %(name)s %(message)s")
+formatter.converter = time.localtime
+ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 
