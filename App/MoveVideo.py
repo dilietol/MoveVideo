@@ -1,6 +1,7 @@
 import os
 import shutil
 import sys
+import time
 from collections import namedtuple
 from pathlib import Path
 from typing import List
@@ -24,7 +25,9 @@ logger = logging.getLogger("MoveVideo")
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 # ch.setLevel(logging.INFO)
-ch.setFormatter(logging.Formatter("%(asctime)s %(name)s %(message)s"))
+formatter = logging.Formatter("%(asctime)s %(name)s %(message)s")
+formatter.converter = time.localtime
+ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 
