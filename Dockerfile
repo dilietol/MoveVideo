@@ -22,8 +22,8 @@ RUN chmod 0644 /etc/cron.d/crontab
 
 
 RUN echo "alias scan='cd /app && /usr/local/bin/python3 ManageStash.py --scan > /proc/self/fd/1 2>&1'" >> /root/.bashrc
-RUN echo "alias process='cd /app && /usr/local/bin/python3 ManageStash.py --process_files > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --garbage > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --update_scene_path --path ""/61.1_series/61.1.9.import/ongoing_series"" > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --delete_duplicates_scenes > /proc/self/fd/1 2>&1'" >> /root/.bashrc
-RUN echo "alias move='cd /app && /usr/local/bin/python3 MoveVideo.py > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageQBittorent.py > /proc/self/fd/1 2>&1'" >> /root/.bashrc
+RUN echo "alias process='cd /app && /usr/local/bin/python3 ManageStash.py --process_files > /proc/self/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --garbage > /proc/self/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --update_scene_path --path ""/61.1_series/61.1.9.import/ongoing_series"" > /proc/self/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --delete_duplicates_scenes > /proc/self/fd/1 2>&1'" >> /root/.bashrc
+RUN echo "alias move='cd /app && /usr/local/bin/python3 MoveVideo.py > /proc/self/fd/1 2>&1 && /usr/local/bin/python3 ManageQBittorent.py > /proc//fd/1 2>&1'" >> /root/.bashrc
 
 
 VOLUME ["/app/in"]
