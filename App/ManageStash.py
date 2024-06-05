@@ -1146,7 +1146,7 @@ def process_reset_scene_path(s: StashInterface, path: str, dry_run=True):
     scene_filter = SceneFilter(organized=False, tags_includes=[MATCHES_DONE],
                                tags_excludes=([MATCHES_FILTERED, MATCHES_FALSE_POSITIVE]),
                                path=path)
-    scene_list = find_scenes_by_tags_path(s, tags_list, scene_filter, 500)
+    scene_list = find_scenes_by_tags_path(s, tags_list, scene_filter, 5000)
     remove_tags(scene_list, s, [x for x in tags_list if x.name in [MATCHES_DONE]], dry_run)
     log_end("PROCESS RESET SCENE PATH")
 
@@ -1196,8 +1196,8 @@ if __name__ == "__main__":
     if args.delete_duplicates_scenes:
         delete_duplicates_scenes(stash, PhashDistance.EXACT, False)
         delete_duplicates_scenes(stash, PhashDistance.HIGH, False)
-        delete_duplicates_scenes(stash, PhashDistance.MEDIUM, False)
-        delete_duplicates_scenes(stash, PhashDistance.LOW, False)
+        # delete_duplicates_scenes(stash, PhashDistance.MEDIUM, False)
+        # delete_duplicates_scenes(stash, PhashDistance.LOW, False)
 
     if args.delete_duplicates_files:
         delete_duplicates_files(stash, False)
