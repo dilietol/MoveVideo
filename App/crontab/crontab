@@ -1,5 +1,8 @@
 # START CRON JOB
+CRON_TZ=Europe/Rome
+SHELL=/bin/bash
+
 0 * * * * cd /app && /usr/local/bin/python3 ManageStash.py --scan > /proc/1/fd/1 2>&1
 10 * * * * cd /app && /usr/local/bin/python3 ManageStash.py --process_files > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --garbage > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --update_scene_path --path "/61.1_series/61.1.9.import/ongoing_series" > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --delete_duplicates_scenes > /proc/1/fd/1 2>&1
-5,15,20,25,30,35,40,45,50,55 * * * * cd /app && /usr/local/bin/python3 MoveVideo.py > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageQBittorent.py > /proc/1/fd/1 2>&1
+20,30,40,50 * * * * cd /app && /usr/local/bin/python3 MoveVideo.py > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageQBittorent.py > /proc/1/fd/1 2>&1
 # END CRON JOB
