@@ -70,6 +70,7 @@ class QBitTorrentClient:
                                                                                                 'stalledUP',
                                                                                                 'queuedUP',
                                                                                                 'uploading',
+                                                                                                'stoppedUP',
                                                                                                 'missingFiles'])]
         return completed_torrents
 
