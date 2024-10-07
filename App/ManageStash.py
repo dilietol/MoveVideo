@@ -102,9 +102,7 @@ class Performer:
     name: str = field(init=False)
     disambiguation: str = field(init=False)
     gender: str = field(init=False)
-    url: str = field(init=False)
-    twitter: str = field(init=False)
-    instagram: str = field(init=False)
+    urls: List[str] = field(init=False)
     birthdate: str = field(init=False)
     ethnicity: str = field(init=False)
     country: str = field(init=False)
@@ -130,9 +128,7 @@ class Performer:
         self.name = self.json["name"]
         self.disambiguation = self.json["disambiguation"]
         self.gender = self.json["gender"]
-        self.url = self.json["url"]
-        self.twitter = self.json["twitter"]
-        self.instagram = self.json["instagram"]
+        self.urls = self.json["urls"]
         self.birthdate = self.json["birthdate"]
         self.ethnicity = self.json["ethnicity"]
         self.country = self.json["country"]
@@ -1146,7 +1142,7 @@ def process_reset_scene_path(s: StashInterface, path: str, dry_run=True):
     scene_filter = SceneFilter(organized=False, tags_includes=[MATCHES_DONE],
                                tags_excludes=([MATCHES_FILTERED, MATCHES_FALSE_POSITIVE]),
                                path=path)
-    scene_list = find_scenes_by_tags_path(s, tags_list, scene_filter, 5000)
+    scene_list = find_scenes_by_tags_path(s, tags_list, scene_filter, 4000)
     remove_tags(scene_list, s, [x for x in tags_list if x.name in [MATCHES_DONE]], dry_run)
     log_end("PROCESS RESET SCENE PATH")
 
