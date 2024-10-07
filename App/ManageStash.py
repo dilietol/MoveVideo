@@ -705,7 +705,7 @@ def create_performer(s: StashInterface, stashbox: StashBox, performer: Performer
     executed = False
     try:
         result = s.create_performer(
-            {"name": performer.name, "disambiguation": performer.disambiguation, "url": performer.url,
+            {"name": performer.name, "disambiguation": performer.disambiguation, "urls": performer.urls,
              "gender": performer.gender, "birthdate": performer.birthdate, "ethnicity": performer.ethnicity,
              "country": performer.country, "eye_color": performer.eye_color, "height_cm": performer.height,
              "measurements": performer.measurements, "fake_tits": performer.fake_tits,
@@ -713,7 +713,6 @@ def create_performer(s: StashInterface, stashbox: StashBox, performer: Performer
              "career_length": performer.career_length, "tattoos": performer.tattoos,
              "piercings": performer.piercings,
              "alias_list": performer.aliases.split(",") if performer.aliases is not None else [],
-             "twitter": performer.twitter, "instagram": performer.instagram,
              "favorite": False, "image": performer.images[0] if len(performer.images) > 0 else None,
              "details": performer.details, "death_date": performer.death_date,
              "hair_color": performer.hair_color, "weight": performer.weight,
