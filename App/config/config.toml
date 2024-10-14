@@ -26,3 +26,7 @@ password = admin
 Trash = /61.1_series/61.1.9.import/trash
 Downloads = /downloads
 Incomplete = /downloads/incomplete
+
+[Scenes]
+# Number of scenes to fetch
+QueryMaxNumber = 400

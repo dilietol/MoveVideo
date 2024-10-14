@@ -313,7 +313,7 @@ def parse_config():
     return conf
 
 
-def initialize() -> (StashInterface, dict):
+def initialize() -> (StashInterface, dict, dict):
     # TODO reorganize stash interface in order to move this initialization in a package/file in the future and move there all the method that use stash interface; leaving in this file only the processing methods.
     global stash
     config = parse_config()
@@ -326,7 +326,7 @@ def initialize() -> (StashInterface, dict):
     if config["Stash_Host"]["ApiKey"]:
         stash_args["ApiKey"] = config["Host"]["ApiKey"]
     stash = StashInterface(stash_args)
-    return stash, config["Path"]
+    return stash, config["Path"], config["Scenes"]
 
 
 def get_scene_duplicated_files(distance: PhashDistance, s: StashInterface) -> list[DuplicatedFiles]:
@@ -842,7 +842,7 @@ def get_scrape_scene(s: StashInterface, scene_list: List[Scene], stashbox: Stash
     return scrape_list
 
 
-def process_matches(s: StashInterface, dry_run=True):
+def process_matches(s: StashInterface, scene_max_number: int = 3000, dry_run=True):
     # TODO: add a final report with the number of scenes matched
     log_start("PROCESS MATCHES")
     # Retrieve all tags from the StashInterface object
@@ -853,7 +853,7 @@ def process_matches(s: StashInterface, dry_run=True):
     # log_block(stashbox_list, "STASHBOX LIST")
 
     # Find scenes to match
-    scene_list = find_scenes_to_match(s, tags_list, stashbox_list, 3000)
+    scene_list = find_scenes_to_match(s, tags_list, stashbox_list, scene_max_number)
 
     result: list[str, list[Scrape]] = list()
     result: list[Scrape] = list()
@@ -1170,7 +1170,7 @@ if __name__ == "__main__":
     # TODO fix log timezone
     # TODO add a method to remove tag UNKOWN from all scenes
 
-    stash, paths = initialize()
+    stash, paths, scenes = initialize()
 
     parser = argparse.ArgumentParser(description='Manage Stash operations')
     parser.add_argument('--delete_duplicates_scenes', action='store_true',
@@ -1198,7 +1198,8 @@ if __name__ == "__main__":
         delete_duplicates_files(stash, False)
 
     if args.process_files:
-        process_matches(stash, False)
+        queryMaxNumber = int(scenes["QueryMaxNumber"]) if scenes["QueryMaxNumber"].isdigit() else int(3000)
+        process_matches(stash, queryMaxNumber, False)
 
     if args.garbage:
         process_corrupted(stash, SCENES_MAX, False)
