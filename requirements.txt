@@ -1,4 +1,4 @@
 stashapp-tools == 0.2.55
 requests == 2.32.3
 qbittorrent-api==2024.9.67
-jsonpath-ng==1.6.1
+jsonpath-ng==1.7.0
