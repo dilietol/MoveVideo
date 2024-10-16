@@ -9,8 +9,8 @@ from typing import List
 from stashapi.stash_types import PhashDistance
 from stashapi.stashapp import StashInterface
 
-from App.Log import log, log_block, log_end, log_start
-from App.Types import StashBox, Tags, Scene, SceneFilter, Studio, Performer, Match, Scrape
+from Log import log, log_block, log_end, log_start
+from Types import StashBox, Tags, Scene, SceneFilter, Studio, Performer, Match, Scrape
 from FindBestFile import FileSlim, DuplicatedFiles
 
 MATCHES_FALSE_POSITIVE = "MATCH_FALSE"  # Tag to add to scene when is not a match
