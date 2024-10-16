@@ -4,8 +4,8 @@ from typing import List
 
 from stashapi.stashapp import StashInterface
 
-from App.FindBestFile import FileSlim, DuplicatedFiles
-from App.Log import log
+from FindBestFile import FileSlim, DuplicatedFiles
+from Log import log
 
 
 @dataclass
