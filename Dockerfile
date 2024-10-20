@@ -28,4 +28,4 @@ RUN echo "alias proxy='cd /app && /usr/local/bin/python3 ProxiedScraper.py > /pr
 VOLUME ["/app/in"]
 VOLUME ["/app/out"]
 
-CMD ["/bin/bash", "-c", "crontab /etc/cron.d/crontab;cron -f;proxy"]
+CMD ["/bin/bash", "-c", "crontab /etc/cron.d/crontab;cron -f;proxy &"]
