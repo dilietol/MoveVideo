@@ -22,7 +22,7 @@ username = admin
 password = admin
 
 [ProxiedScaper]
-Title=Nyaa.si
+Title=Nyaa.si Proxy
 Url = https://nyaa.si/?p
 Interval = 30
 Column_magnet = 2
