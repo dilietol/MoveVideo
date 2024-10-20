@@ -21,6 +21,14 @@ username = admin
 #The password, if your stash qbittorrent is password protected
 password = admin
 
+[ProxiedScaper]
+Url = https://nyaa.si/?p=
+Column_magnet = 2
+Column_title = 1
+Link_number = 1
+Port = 55101
+Interval = 30
+
 [Path]
 # Path to trash folder
 Trash = /61.1_series/61.1.9.import/trash

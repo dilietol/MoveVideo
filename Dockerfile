@@ -22,9 +22,10 @@ RUN echo "alias scan='cd /app && /usr/local/bin/python3 ManageStash.py --scan > 
 RUN echo "alias process='cd /app && /usr/local/bin/python3 ManageStash.py --process_files > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --garbage > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --update_scene_path --path ""/61.1_series/61.1.9.import/ongoing_series"" > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --update_scene_path --path ""/61.1_series/61.1.9.import/_old"" > /proc/1/fd/1 2>&1'" >> /root/.bashrc
 RUN echo "alias deldup='cd /app && /usr/local/bin/python3 ManageStash.py --delete_duplicates_scenes > /proc/1/fd/1 2>&1'" >> /root/.bashrc
 RUN echo "alias move='cd /app && /usr/local/bin/python3 MoveVideo.py > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageQBittorent.py > /proc/1/fd/1 2>&1'" >> /root/.bashrc
+RUN echo "alias proxy='cd /app && /usr/local/bin/python3 ProxiedScraper.py > /proc/1/fd/1 2>&1'" >> /root/.bashrc
 
 
 VOLUME ["/app/in"]
 VOLUME ["/app/out"]
 
-CMD ["/bin/bash", "-c", "crontab /etc/cron.d/crontab;cron -f"]
+CMD ["/bin/bash", "-c", "crontab /etc/cron.d/crontab;cron -f;proxy"]
