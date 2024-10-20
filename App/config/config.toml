@@ -28,6 +28,7 @@ Interval = 30
 Column_magnet = 2
 Column_title = 1
 Link_number = 1
+Port = 55101
 
 [Path]
 # Path to trash folder
