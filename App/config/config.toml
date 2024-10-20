@@ -22,11 +22,12 @@ username = admin
 password = admin
 
 [ProxiedScaper]
-Url = https://nyaa.si/?p =
+Title=Nyaa.si
+Url = https://nyaa.si/?p
+Interval = 30
 Column_magnet = 2
 Column_title = 1
 Link_number = 1
-Interval = 30
 
 [Path]
 # Path to trash folder

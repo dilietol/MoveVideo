@@ -65,15 +65,15 @@ class RSSGenerator:
 
 
 class App:
-    def __init__(self, url: str, column_magnet_link: int, column_title: int, link_number=1):
-
+    def __init__(self, title: str, url: str, column_magnet_link: int, column_title: int, link_number=1):
+        self.title = title
         urls = [f"{url}{i}" for i in range(1, link_number + 1)]
         self.scrapers = [Scraper(url, column_magnet_link=column_magnet_link, column_description=column_title) for
                          url in urls]
         self.rss_generator = RSSGenerator(
-            title="Title",
+            title=self.title,
             link="",
-            description="Description"
+            description=""
         )
         self.app = Flask(__name__)
 
@@ -93,7 +93,7 @@ class App:
             all_links.extend(scraper.scrape())
 
         self.rss_generator = RSSGenerator(
-            title="Title",
+            title=self.title,
             link="",
             description=""
         )
@@ -113,14 +113,14 @@ def parse_config():
     return conf
 
 
-def initialize() -> (list[str], str, int, int, int, int):
+def initialize() -> (str, str, int, int, int, int):
     config = parse_config()
-    return (config["ProxiedScaper"]["Url"], int(config["ProxiedScaper"]["Interval"]),
+    return (config["ProxiedScaper"]["Title"], config["ProxiedScaper"]["Url"], int(config["ProxiedScaper"]["Interval"]),
             int(config["ProxiedScaper"]["Column_magnet"]), int(config["ProxiedScaper"]["Column_title"]),
             int(config["ProxiedScaper"]["Link_number"]))
 
 
 if __name__ == '__main__':
-    url, interval, column_magnet, column_title, link_number = initialize()
-    app = App(url, column_magnet, column_title, link_number)
+    title, url, interval, column_magnet, column_title, link_number = initialize()
+    app = App(title, url, column_magnet, column_title, link_number)
     app.run(interval=interval)
