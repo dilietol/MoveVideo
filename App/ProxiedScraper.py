@@ -35,24 +35,35 @@ class Scraper:
         self.column_description = column_description
 
     def scrape(self) -> List[MagnetLink]:
-        response = requests.get(self.url)
+        magnet_links = []
+        session = requests.session()
+        session.headers[
+            "accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+        session.headers[
+            "accept-language"] = "en-US,en;q=0.9,it-IT;q=0.8,it;q=0.7,es-ES;q=0.6,es;q=0.5,pt-BR;q=0.4,pt;q=0.3"
+        session.headers[
+            "user-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0"
+        print(session.headers)
+        response = session.get(self.url)
         soup = BeautifulSoup(response.text, 'html.parser')
 
         # FInd the root path
         table = soup.find('tbody')
 
-        magnet_links = []
-        rows = table.find_all('tr')
-        for row in rows:
-            cells = row.find_all('td')
-            if len(cells) >= 2:
-                link = cells[self.column_magnet_link].find('a', href=re.compile(r'^magnet:'))
-                if link:
-                    magnet_links.append(MagnetLink(
-                        url=link['href'],
-                        description=cells[self.column_description].get_text(strip=True)
-                    ))
-
+        if table is not None:
+            rows = table.find_all(name='tr')
+            for row in rows:
+                cells = row.find_all('td')
+                if len(cells) >= 2:
+                    link = cells[self.column_magnet_link].find('a', href=re.compile(r'^magnet:'))
+                    if link:
+                        magnet_links.append(MagnetLink(
+                            url=link['href'],
+                            description=cells[self.column_description].get_text(strip=True)
+                        ))
+        else:
+            # Handle the case where the 'tbody' element is not found
+            print("Error: Could not find 'tbody' element in the HTML")
         return magnet_links
 
 
