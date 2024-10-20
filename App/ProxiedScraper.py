@@ -77,7 +77,7 @@ class App:
         )
         self.app = Flask(__name__)
 
-    def run(self, port: int = 55000, interval: int = 30):
+    def run(self, interval: int = 30):
         self.update_feed()
         schedule.every(interval).minutes.do(self.update_feed)
 
@@ -85,7 +85,7 @@ class App:
         def serve_rss():
             return self.rss_generator.get_feed(), 200, {'Content-Type': 'application/rss+xml'}
 
-        self.app.run(host='0.0.0.0', port=port)
+        self.app.run(host='0.0.0.0', port=55101)
 
     def update_feed(self):
         all_links = []
@@ -115,13 +115,12 @@ def parse_config():
 
 def initialize() -> (list[str], str, int, int, int, int):
     config = parse_config()
-    return config["ProxiedScaper"]["Url"], config["ProxiedScaper"]["Port"], int(
-        config["ProxiedScaper"]["Interval"]), int(config["ProxiedScaper"][
-                                                      "Column_magnet"]), int(
-        config["ProxiedScaper"]["Column_title"]), int(config["ProxiedScaper"]["Link_number"])
+    return (config["ProxiedScaper"]["Url"], int(config["ProxiedScaper"]["Interval"]),
+            int(config["ProxiedScaper"]["Column_magnet"]), int(config["ProxiedScaper"]["Column_title"]),
+            int(config["ProxiedScaper"]["Link_number"]))
 
 
 if __name__ == '__main__':
-    url, port, interval, column_magnet, column_title, link_number = initialize()
+    url, interval, column_magnet, column_title, link_number = initialize()
     app = App(url, column_magnet, column_title, link_number)
-    app.run(port, interval=interval)
+    app.run(interval=interval)

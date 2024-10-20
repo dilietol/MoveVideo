@@ -22,11 +22,10 @@ username = admin
 password = admin
 
 [ProxiedScaper]
-Url = https://nyaa.si/?p=
+Url = https://nyaa.si/?p =
 Column_magnet = 2
 Column_title = 1
 Link_number = 1
-Port = 55101
 Interval = 30
 
 [Path]

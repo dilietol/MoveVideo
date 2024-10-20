@@ -24,6 +24,8 @@ RUN echo "alias deldup='cd /app && /usr/local/bin/python3 ManageStash.py --delet
 RUN echo "alias move='cd /app && /usr/local/bin/python3 MoveVideo.py > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageQBittorent.py > /proc/1/fd/1 2>&1'" >> /root/.bashrc
 RUN echo "alias proxy='cd /app && /usr/local/bin/python3 ProxiedScraper.py > /proc/1/fd/1 2>&1'" >> /root/.bashrc
 
+#Expose Flask Port
+EXPOSE 55101
 
 VOLUME ["/app/in"]
 VOLUME ["/app/out"]
