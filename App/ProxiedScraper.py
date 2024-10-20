@@ -43,7 +43,6 @@ class Scraper:
             "accept-language"] = "en-US,en;q=0.9,it-IT;q=0.8,it;q=0.7,es-ES;q=0.6,es;q=0.5,pt-BR;q=0.4,pt;q=0.3"
         session.headers[
             "user-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0"
-        print(session.headers)
         response = session.get(self.url)
         soup = BeautifulSoup(response.text, 'html.parser')
 
