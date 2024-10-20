@@ -30,4 +30,4 @@ EXPOSE 55101
 VOLUME ["/app/in"]
 VOLUME ["/app/out"]
 
-CMD ["/bin/bash", "-c", "crontab /etc/cron.d/crontab;cron -f;proxy &"]
+CMD ["/bin/bash", "-c", "crontab /etc/cron.d/crontab;cron -f;cd /app; /usr/local/bin/python3 ProxiedScraper.py > /proc/1/fd/1 2>&1"]
