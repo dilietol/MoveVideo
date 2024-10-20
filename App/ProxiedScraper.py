@@ -17,6 +17,17 @@ class MagnetLink:
     description: str
 
 
+@dataclass
+class Server:
+    title: str
+    url: str
+    link_number: int
+    column_magnet: int
+    column_title: int
+    interval: int
+    port: int
+
+
 class Scraper:
     def __init__(self, url: str, column_magnet_link: int = 2, column_description: int = 1):
         self.url = url
@@ -65,8 +76,9 @@ class RSSGenerator:
 
 
 class App:
-    def __init__(self, title: str, url: str, column_magnet_link: int, column_title: int, link_number=1):
+    def __init__(self, title: str, url: str, column_magnet_link: int, column_title: int, link_number=1, port=55101):
         self.title = title
+        self.port = port
         urls = [f"{url}{i}" for i in range(1, link_number + 1)]
         self.scrapers = [Scraper(url, column_magnet_link=column_magnet_link, column_description=column_title) for
                          url in urls]
@@ -85,7 +97,7 @@ class App:
         def serve_rss():
             return self.rss_generator.get_feed(), 200, {'Content-Type': 'application/rss+xml'}
 
-        self.app.run(host='0.0.0.0', port=55101)
+        self.app.run(host='0.0.0.0', port=self.port)
 
     def update_feed(self):
         all_links = []
@@ -113,14 +125,20 @@ def parse_config():
     return conf
 
 
-def initialize() -> (str, str, int, int, int, int):
+def initialize() -> Server:
     config = parse_config()
-    return (config["ProxiedScaper"]["Title"], config["ProxiedScaper"]["Url"], int(config["ProxiedScaper"]["Interval"]),
-            int(config["ProxiedScaper"]["Column_magnet"]), int(config["ProxiedScaper"]["Column_title"]),
-            int(config["ProxiedScaper"]["Link_number"]))
+    server_config = config["ProxiedScaper"]
+    server = Server(
+        title=server_config["Title"],
+        url=server_config["Url"], interval=int(server_config["Interval"]),
+        column_magnet=int(server_config["Column_magnet"]),
+        column_title=int(server_config["Column_title"]),
+        link_number=int(server_config["Link_number"]),
+        port=int(server_config["Port"]))
+    return server
 
 
 if __name__ == '__main__':
-    title, url, interval, column_magnet, column_title, link_number = initialize()
-    app = App(title, url, column_magnet, column_title, link_number)
-    app.run(interval=interval)
+    server = initialize()
+    app = App(server.title, server.url, server.column_magnet, server.column_title, server.link_number, server.port)
+    app.run(interval=server.interval)
