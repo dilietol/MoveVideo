@@ -822,7 +822,7 @@ def destroy_scenes(s: StashInterface, dry_run: bool, scene_list: List[Scene], de
     log_end("DESTROY SCENES")
 
 
-def process_reset_scene_path(s: StashInterface, path: str, dry_run=True):
+def process_reset_scene_path(s: StashInterface, path: str, reset_scene_max_number=500, dry_run=True):
     # remove tag MATCH_DONE from all scenes in a path
     log_start("PROCESS RESET SCENE PATH")
     tags_list: List[Tags] = get_tags(s)
@@ -831,7 +831,7 @@ def process_reset_scene_path(s: StashInterface, path: str, dry_run=True):
     scene_filter = SceneFilter(organized=False, tags_includes=[MATCHES_DONE],
                                tags_excludes=([MATCHES_FILTERED, MATCHES_FALSE_POSITIVE]),
                                path=path)
-    scene_list = find_scenes_by_tags_path(s, tags_list, scene_filter, 4000)
+    scene_list = find_scenes_by_tags_path(s, tags_list, scene_filter, reset_scene_max_number)
     remove_tags(scene_list, s, [x for x in tags_list if x.name in [MATCHES_DONE]], dry_run)
     log_end("PROCESS RESET SCENE PATH")
 
@@ -909,7 +909,8 @@ if __name__ == "__main__":
 
     if args.reset_scene_path:
         for x in args.path:
-            process_reset_scene_path(stash, path=x, dry_run=False)
+            for y in range(1, 30):
+                process_reset_scene_path(stash, path=x, reset_scene_max_number=400, dry_run=False)
 
     if args.test:
         process_test(stash, False)
