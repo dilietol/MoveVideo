@@ -5,7 +5,7 @@ from collections import namedtuple
 from pathlib import Path
 from typing import List
 
-from App.Log import Logger
+from Log import Logger
 
 VERSION = "0.1"
 
