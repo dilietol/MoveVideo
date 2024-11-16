@@ -12,7 +12,7 @@ class Logger:
         self.formatter.converter = time.localtime
         self.ch.setFormatter(self.formatter)
 
-        self.logger = logging.getLogger("namespace")
+        self.logger = logging.getLogger(namespace)
         self.logger.setLevel(logging.DEBUG)
         self.logger.addHandler(self.ch)
 
