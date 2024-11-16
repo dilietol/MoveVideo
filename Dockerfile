@@ -23,7 +23,7 @@ RUN echo "alias process='cd /app && /usr/local/bin/python3 ManageStash.py --proc
 RUN echo "alias deldup='cd /app && /usr/local/bin/python3 ManageStash.py --delete_duplicates_scenes > /proc/1/fd/1 2>&1'" >> /root/.bashrc
 RUN echo "alias move='cd /app && /usr/local/bin/python3 MoveVideo.py > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageQBittorent.py > /proc/1/fd/1 2>&1'" >> /root/.bashrc
 RUN echo "alias proxy='cd /app && /usr/local/bin/python3 ProxiedScraper.py > /proc/1/fd/1 2>&1'" >> /root/.bashrc
-RUN echo "alias move_from='find /app/move_from -type f -exec mv {} /app/move_to \ > /proc/1/fd/1 2>&1'" >> /root/.bashrc
+RUN echo "alias move_from='find /app/move_from -type f -exec sh -c '\"'\"'mv \"\$1\" /app/move_to && echo \"Moved: \$1\"'\"'\"' _ {} > /proc/1/fd/1 2>&1 \;'" >> /root/.bashrc
 
 
 #Expose Flask Port
