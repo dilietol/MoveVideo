@@ -5,7 +5,6 @@ from typing import List
 from stashapi.stashapp import StashInterface
 
 from FindBestFile import FileSlim, DuplicatedFiles
-from Log import log
 
 
 @dataclass
@@ -262,7 +261,6 @@ def find_matches(s: StashInterface, scene: Scene, stashbox: StashBox) -> List[Ma
             data = s.scrape_scene({"stash_box_index": stashbox.id}, {"scene_id": scene.id})
             break
         except Exception as e:
-            log("FAILED TO SCRAPE SCENE %s FROM STASHBOX %s" % (scene.id, stashbox.name))
             print(f"Received a GraphQL exception : {e}")
             time.sleep(4)
             data = None
