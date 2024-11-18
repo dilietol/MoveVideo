@@ -67,29 +67,33 @@ class ManageStash:
             duplicated_files_slim: list[FileSlim] = list()
             for item in element:
                 file_slim = self.extract_fileslim(item)
-                duplicated_files_slim.append(file_slim)
+                duplicated_files_slim.append(file_slim[0])
             compared_files_list.append(DuplicatedFiles(files=duplicated_files_slim))
         return compared_files_list
 
-    def extract_fileslim(self, item) -> FileSlim:
+    def extract_fileslim(self, item) -> [FileSlim]:
         # TODO: StashCli
         # TODO manage multiple files
-        phash = oshash = None
-        for elem in item.get("files")[0].get("fingerprints"):
-            if elem.get("type") == "phash":
-                phash = elem.get("value")
-            if elem.get("type") == "oshash":
-                oshash = elem.get("value")
-        return FileSlim(id=item.get("id"), organized=item.get("organized"),
-                        width=item.get("files")[0].get("width"),
-                        video_codec=item.get("files")[0].get("video_codec"),
-                        size=item.get("files")[0].get("size"),
-                        duration=item.get("files")[0].get("duration"),
-                        basename=item.get("files")[0].get("basename"),
-                        format=item.get("files")[0].get("format"),
-                        oshash=oshash,
-                        phash=phash
-                        )
+        file_slims: list[FileSlim] = []
+        for i, file in enumerate(item.get("files", [])):
+            phash = oshash = None
+            for elem in file.get("fingerprints"):
+                if elem.get("type") == "phash":
+                    phash = elem.get("value")
+                if elem.get("type") == "oshash":
+                    oshash = elem.get("value")
+            file_slims.append(FileSlim(id=item.get("id"), organized=item.get("organized"),
+                                       id_file=file.get("id"),
+                                       width=file.get("width"),
+                                       video_codec=file.get("video_codec"),
+                                       size=file.get("size"),
+                                       duration=file.get("duration"),
+                                       basename=file.get("basename"),
+                                       format=file.get("format"),
+                                       oshash=oshash,
+                                       phash=phash
+                                       ))
+        return file_slims
 
     def delete_duplicates_scenes(self, s: StashInterface, p: PhashDistance = PhashDistance.EXACT, dry_run=True):
         self.logger.log_start("DELETE DUPLICATES SCENES")
@@ -98,13 +102,13 @@ class ManageStash:
         # log_block(compared_files_list, "COMPARED FILES")
 
         deleted_size_sum = 0
-        deleted_files_id_list: list[int] = []
+        deleted_scenes_id_list: list[int] = []
         counters = {}
         counters_ok = {}
         for elem in compared_files_list:
             if elem.id != 0:
                 deleted_size_sum += elem.to_delete_size
-                deleted_files_id_list.extend(elem.to_delete)
+                deleted_scenes_id_list.extend(elem.to_delete)
                 parameter = elem.why
                 if parameter in counters_ok:
                     counters_ok[parameter] += 1
@@ -123,24 +127,24 @@ class ManageStash:
         self.logger.log("Number of comparison: " + str(len(compared_files_list)))
         self.logger.log("Number of compared files: " + str(len(array_of_files)))
         self.logger.log("Size to delete: " + str(deleted_size_sum))
-        self.logger.log("Number of files to delete: " + str(len(deleted_files_id_list)))
+        self.logger.log("Number of files to delete: " + str(len(deleted_scenes_id_list)))
         self.logger.log("counters for valid duplicates: " + json.dumps(counters_ok))
         self.logger.log("counters for not valid duplicates: " + json.dumps(counters))
 
         # TODO refactor in order to use the destroy_scenes method
-        for elem in deleted_files_id_list:
+        for elem in deleted_scenes_id_list:
             if not dry_run:
                 for i in range(3):
                     try:
                         s.destroy_scene(elem, True)
-                        self.logger.log("File deleted: " + str(elem))
+                        self.logger.log("Scene deleted: " + str(elem))
                         break
                     except Exception as e:
                         self.logger.log("FAILED TO DELETE SCENE %s" % elem)
                         print(f"Received a GraphQL exception : {e}")
                         time.sleep(4)
             else:
-                self.logger.log("File to delete: " + str(elem))
+                self.logger.log("Scene to delete: " + str(elem))
         self.logger.log_end("DELETE DUPLICATES SCENES")
 
     def get_tags(self, s: StashInterface, name: str = "") -> list[Tags]:
@@ -280,7 +284,7 @@ class ManageStash:
             for elem in data:
                 scene_list.append(Scene(id=elem["id"], organized=elem["organized"], title=elem["title"],
                                         tags=[Tags(id=tag["id"], name=tag["name"]) for tag in elem["tags"]],
-                                        files=[self.extract_fileslim(elem)]))
+                                        files=self.extract_fileslim(elem)))
             page_number += 1
             if len(scene_list) >= scenes_number_max != 0:
                 others = False
@@ -677,7 +681,6 @@ class ManageStash:
         pass
 
     def delete_duplicates_files(self, s: StashInterface, dry_run=True):
-        # TODO: to fix because currently is not working properly
         self.logger.log_start("DELETE DUPLICATES FILES")
         scene_filter = SceneFilter(organized=True, file_count=1, tags_includes=[],
                                    tags_excludes=[])
@@ -689,9 +692,9 @@ class ManageStash:
         counters = {}
         counters_ok = {}
         for elem in scene_list:
-            if elem.duplicated_files.id != 0:
+            if elem.duplicated_files.id_file != 0:
                 deleted_size_sum += elem.duplicated_files.to_delete_size
-                deleted_files_id_list.extend(elem.duplicated_files.to_delete)
+                deleted_files_id_list.extend(elem.duplicated_files.to_delete_files)
                 parameter = elem.duplicated_files.why
                 if parameter in counters_ok:
                     counters_ok[parameter] += 1
@@ -715,17 +718,17 @@ class ManageStash:
         self.logger.log("counters for not valid duplicates: " + json.dumps(counters))
 
         for scene in scene_list:
-            if scene.duplicated_files.id != 0:
+            if scene.duplicated_files.id_file != 0:
                 if not dry_run:
-                    if scene.duplicated_files.id != scene.files[0].id:
-                        scene_id = s.update_scene({"id": scene.id, "primary_file_id": scene.duplicated_files.id})
+                    if scene.duplicated_files.id_file != scene.duplicated_files.files[0].id_file:
+                        scene_id = s.update_scene({"id": scene.id, "primary_file_id": scene.duplicated_files.id_file})
                         self.logger.log(
-                            "File made primary: %s for scene: %s" % (str(scene.duplicated_files.id), scene_id))
-                    for file_id in scene.duplicated_files.to_delete:
+                            "File made primary: %s for scene: %s" % (str(scene.duplicated_files.id_file), scene_id))
+                    for file_id in scene.duplicated_files.to_delete_files:
                         s.destroy_files([file_id])
                         self.logger.log("File deleted: " + str(file_id))
                 else:
-                    for file_id in scene.duplicated_files.to_delete:
+                    for file_id in scene.duplicated_files.to_delete_files:
                         self.logger.log("File to delete: " + str(file_id))
         self.logger.log_end("DELETE DUPLICATES FILES")
 
