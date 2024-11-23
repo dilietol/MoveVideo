@@ -25,7 +25,7 @@ RUN echo "alias ddf='cd /app && /usr/local/bin/python3 ManageStash.py --delete_d
 RUN echo "alias move='cd /app && /usr/local/bin/python3 MoveVideo.py > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageQBittorent.py > /proc/1/fd/1 2>&1'" >> /root/.bashrc
 RUN echo "alias proxy='cd /app && /usr/local/bin/python3 ProxiedScraper.py > /proc/1/fd/1 2>&1'" >> /root/.bashrc
 RUN echo "alias mf='find /app/move_from -type f -exec sh -c '\"'\"'mv \"\$1\" /app/move_to && echo \"Moved: \$1\"'\"'\"' _ {} > /proc/1/fd/1 2>&1 \;'" >> /root/.bashrc
-
+RUN echo "alias mf2='find /app/move_from -mindepth 2 -exec mv -t /app/move_to {} + > /proc/1/fd/1 2>&1'" >> /root/.bashrc
 
 #Expose Flask Port
 EXPOSE 55101
