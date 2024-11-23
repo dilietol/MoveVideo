@@ -1,5 +1,6 @@
 import configparser
 import os
+import time
 
 import requests
 from bs4 import BeautifulSoup
@@ -113,6 +114,7 @@ class App:
         all_links = []
         for scraper in self.scrapers:
             all_links.extend(scraper.scrape())
+            time.sleep(1)
 
         self.rss_generator = RSSGenerator(
             title=self.title,
