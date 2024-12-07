@@ -446,13 +446,14 @@ class ManageStash:
             self.logger.log(f"Received a GraphQL exception : {e}")
         return executed
 
-    def update_scene(self, s: StashInterface, scrape: Scrape, match_index: int = 0) -> bool:
+    def update_scene(self, s: StashInterface, scrape: Scrape, match: Match = None) -> bool:
         # TODO: StashCli
         executed = False
-        match: Match = scrape.matches[match_index]
+        if match is None:
+            match: Match = scrape.matches[0]
         for i in range(5):
             try:
-                s.update_scene({"id": scrape.scene.id, "title": scrape.matches[match_index].title, "code": match.code,
+                s.update_scene({"id": scrape.scene.id, "title": match.title, "code": match.code,
                                 "details": match.details, "director": match.director, "urls": match.urls,
                                 "date": match.date, "organized": True, "studio_id": match.studio.stored_id,
                                 "performer_ids": [performer.stored_id for performer in match.performers],
@@ -466,7 +467,7 @@ class ManageStash:
                 self.logger.log(f"Received a GraphQL exception : {e}")
                 time.sleep(4)
         if executed:
-            self.logger.log("SCENE UPDATED: " + scrape.scene.id + " : " + scrape.matches[0].title)
+            self.logger.log("SCENE UPDATED: " + scrape.scene.id + " : " + match.title)
         return executed
 
     def find_update_scene_by_stashbox(self, s: StashInterface, stashbox: StashBox, tags_list, scenes_number_max=20,
@@ -515,16 +516,24 @@ class ManageStash:
             if created:
                 scrape = Scrape(s, scene, stashbox)
             if scrape.scene.organized is False and failed is False:
-                if scrape.calc_match is True:
+                if scrape.match is True:
                     self.logger.log(str(stashbox.name) + " Good match found: " + scrape.scene.id + " : " + str(
-                        scrape.matches[0].title))
-                    if dry_run is False:
-                        self.update_scene(s, scrape)
+                        scrape.match_object.title))
+                    if scrape.index == 1:
+                        # More than a match found
+                        if dry_run is False:
+                            self.update_scene(s, scrape, scrape.match_object)
+                        else:
+                            self.logger.log("SCENE TO UPDATE: " + scrape.scene.id + " : " + scrape.match_object.title)
                     else:
-                        self.logger.log("SCENE TO UPDATE: " + scrape.scene.id + " : " + scrape.matches[0].title)
+                        # Just one match
+                        if dry_run is False:
+                            self.update_scene(s, scrape)
+                        else:
+                            self.logger.log("SCENE TO UPDATE: " + scrape.scene.id + " : " + scrape.matches[0].title)
                 else:
                     self.logger.log(str(stashbox.name) + " Bad match found: " + scrape.scene.id + " : " + str(
-                        scrape.scene.files[0].basename))
+                        scrape.scene.files[0].basename) + " : " + scrape.match_why)
             else:
                 self.logger.log(str(stashbox.name) + " Error match found: " + scrape.scene.id + " : " + str(
                     scrape.matches[0].title))
@@ -888,8 +897,8 @@ class ManageStash:
 
         if args.reset_scene_path:
             for x in args.path:
-                for y in range(1, 30):
-                    self.process_reset_scene_path(stash, path=x, reset_scene_max_number=200, dry_run=False)
+                for y in range(1, 4):
+                    self.process_reset_scene_path(stash, path=x, reset_scene_max_number=50, dry_run=False)
 
         if args.test:
             self.process_test(stash, False)

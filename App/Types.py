@@ -170,73 +170,140 @@ class Match:
 
 
 @dataclass
+class MatchEvaluation:
+    match: Match
+    scene: Scene
+    # file: FileSlim
+    matched: bool = False  # True if at least one good match
+    same_date: bool = False  # True if date match to filename
+    duration_matches_total: int = field(init=False)  # number of match duration
+    duration_matches_number: int = field(init=False)  # number match duration equal to file duration
+    phashes_matches_exact: int = field(init=False)  # number of exact phase match
+    phashes_matches_number: int = field(init=False)  # number of similar phashes match
+    no_match_why: str = field(init=False)  # why for not matched
+
+    def __post_init__(self) -> None:
+        self.duration_matches_total, self.duration_matches_number = duration_match(self.match,
+                                                                                   self.scene.files[
+                                                                                       0].duration)
+        self.phashes_matches_exact, self.phashes_matches_number = phashes_match(self.match,
+                                                                                self.scene.files[0].phash)
+        self.same_date = is_same_date(self.match, self.scene.files[0].basename)
+        self.matched, self.no_match_why = is_match(self.match, self.scene.files[0].basename,
+                                                   self.duration_matches_total,
+                                                   self.duration_matches_number,
+                                                   self.phashes_matches_exact, self.phashes_matches_number)
+
+    def get_why(self) -> str:
+        return self.no_match_why + " (" + str(self.duration_matches_total) + "/" + str(
+            self.duration_matches_number) + "/" + str(self.phashes_matches_exact) + "/" + str(
+            self.phashes_matches_number) + "/" + str(self.same_date) + ")"
+
+
+def duration_match(match: Match, duration: float) -> (int, int):
+    # Calc the number of match duration (total) and number of match duration equal to file duration (number)
+    return len(match.fingerprints), sum(
+        1 for x in match.fingerprints if
+        # differ for less than 1.5 seconds
+        abs(x.duration - duration) < 1.5
+        # percentage of the entire length: difference in less than 0,3% (5 is acceptable for a length of 1930
+        or ((abs(x.duration - duration)) * 1000 / duration) < 3)
+
+
+def phashes_match(match: Match, phash: str) -> (int, int):
+    # Calc the number of exact phase match and number of similar phashes match
+    # The calculation is made only on PHASH fingerprints
+    phashes = [y for y in match.fingerprints if y.algorithm == "PHASH"]
+    return sum(1 for x in phashes if x.hash == phash), sum(
+        1 for x in phashes if sum(1 for a, b in zip(x.hash, phash) if a != b) <= 4)
+
+
+def is_same_date(match: Match, filename: str) -> bool:
+    # Check if the date of the match is the same as the date of the filename
+    date_str_list = list(set([elem[-2:] for elem in match.date.split("-")]))
+    if len(date_str_list) == 3:
+        return all(elem in filename for elem in date_str_list)
+    return False
+
+
+def is_match(match: Match, filename: str, duration_matches_total: int, duration_matches_number: int,
+             phashes_matches_exact: int, phashes_matches_number: int) -> (bool, str):
+    # TODO: add a more cases to match; currently only simple matches are managed
+    result: bool = False
+    same_date: bool = False
+    if phashes_matches_exact > 0 and (
+            duration_matches_number == duration_matches_total or duration_matches_number >= 10):
+        # At least one Exact match and all duration equal or duration equal number >= 10
+        result = True
+    elif phashes_matches_number > 1 and duration_matches_number == duration_matches_total:
+        # At least one similar match and all duration equal
+        result = True
+    same_date = is_same_date(match, filename)
+    if phashes_matches_exact > 0 and duration_matches_number > 5 and same_date is True:
+        # At least one Exact match and duration equal number > 5 and date match
+        result = True
+    elif duration_matches_number == duration_matches_total and same_date is True:
+        #  all duration equal and date match
+        result = True
+
+    return result, "" if result is True else "No good match found"
+
+
+@dataclass
 class Scrape:
     s: StashInterface
     scene: Scene
     stashbox: StashBox
     matches: List[Match] = field(init=False)
-    calc_duration_matches_total: int = field(init=False)
-    calc_duration_matches_number: int = field(init=False)
-    calc_phashes_matches_exact: int = field(init=False)
-    calc_phashes_matches_number: int = field(init=False)
-    calc_match: bool = False
+    evaluations: List[MatchEvaluation] = field(init=False)
+    match: bool = False  # True if at least one good match
+    match_why: str = field(init=False)  # why for not matched
+    index: int = -1  # the evaluations sequence that matched
+    match_object: Match = field(init=False)
 
     def __post_init__(self) -> None:
         self.matches = find_matches(self.s, self.scene, self.stashbox)
-        if len(self.scene.files) == 1 and self.matches is not None and len(self.matches) == 1:
-            # One Match
-            phashes = [y for y in self.matches[0].fingerprints if y.algorithm == "PHASH"]
-            phash = self.scene.files[0].phash
-            self.calc_duration_matches_total = len(self.matches[0].fingerprints)
-            self.calc_duration_matches_number = sum(
-                1 for x in self.matches[0].fingerprints if
-                # differ for less than 1.5 seconds
-                abs(x.duration - self.scene.files[0].duration) < 1.5
-                # percentage of the entire length: difference in less than 0,3% (5 is acceptable for a length of 1930
-                or ((abs(x.duration - self.scene.files[0].duration)) * 1000 / self.scene.files[0].duration) < 3)
-            self.calc_phashes_matches_exact = sum(1 for x in phashes if x.hash == phash)
-
-            n = 0
-            if phash is not None:
-                for x in phashes:
-                    diff = 0
-                    for i in range(min(len(x.hash), len(phash))):
-                        if x.hash[i] != phash[i]:
-                            diff += 1
-                            if diff >= 4:
-                                break
-                    if diff < 4:
-                        n += 1
-            self.calc_phashes_matches_number = n
-            self.calc_match = calc_match(self)
+        if len(self.scene.files) == 1 and self.matches is not None:
+            self.evaluations = [MatchEvaluation(x, self.scene) for x in self.matches]
+            if len(self.matches) == 1:
+                # One Match
+                self.match = any(x.matched for x in self.evaluations)
+                self.index = 0
+                self.match_object = self.evaluations[0].match
+                self.match_why = self.evaluations[0].get_why()
+            else:
+                # TODO: add a recognition method based on date when more than one match is found.
+                self.match = any(x.matched for x in self.evaluations)
+                if self.match:
+                    matches_list = [x for x in self.evaluations if x.matched]
+                    if len(matches_list) == 1:
+                        self.match_object = matches_list[0].match
+                        self.index = 1
+                    else:
+                        matches_date_list = [x for x in self.evaluations if x.matched and x.same_date]
+                        if len(matches_date_list) == 1:
+                            self.match_object = matches_date_list[0].match
+                            self.index = 1
+                        else:
+                            self.index = -1
+                            self.match_why = "More than one match : " + " - ".join(
+                                x.match.title + " -> " + x.get_why() for x in self.evaluations)
+                else:
+                    self.index = -1
+                    self.match_why = "More than one match : " + " - ".join(
+                        x.match.title + " -> " + x.get_why() for x in self.evaluations)
         else:
-            # TODO: add a recognition method based on date when more than one match is found.
-            self.calc_duration_matches_total = 0
-            self.calc_duration_matches_number = 0
-            self.calc_phashes_matches_exact = 0
-            self.calc_phashes_matches_number = 0
-            self.calc_match = False
+            # No match possible
+            self.match = False
+            self.index = -1
+            if len(self.scene.files) == 1:
+                self.match_why = "No match found"
+            elif len(self.scene.files) > 1:
+                self.match_why = "many files"
+            elif len(self.scene.files) < 1:
+                self.match_why = "no file"
+            self.evaluations = []
         self.s = None
-
-
-def calc_match(self: Scrape) -> bool:
-    # TODO: add a more cases to match; currently only simple matches are managed
-    result: bool = False
-    same_date: bool = False
-    if self.calc_phashes_matches_exact > 0 and self.calc_duration_matches_number == self.calc_duration_matches_total:
-        # Exact and equal number
-        result = True
-    date_str_list = list(set([elem[-2:] for elem in self.matches[0].date.split("-")]))
-    if len(date_str_list) == 3:
-        same_date = all(elem in self.scene.files[0].basename for elem in date_str_list)
-    if self.calc_phashes_matches_exact > 0 and self.calc_duration_matches_number > 5 and same_date is True:
-        # Exact and number greater than 5 and date match
-        result = True
-    if self.calc_duration_matches_number == self.calc_duration_matches_total and same_date is True:
-        # equal number and date match
-        result = True
-
-    return result
 
 
 def find_matches(s: StashInterface, scene: Scene, stashbox: StashBox) -> List[Match]:
