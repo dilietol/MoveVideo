@@ -286,6 +286,7 @@ class Scrape:
                             self.index = 1
                         else:
                             self.index = -1
+                            self.match_object = self.evaluations[0].match
                             self.match_why = "More than one match : " + " - ".join(
                                 x.match.title + " -> " + x.get_why() for x in self.evaluations)
                 else:
