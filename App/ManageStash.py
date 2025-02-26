@@ -584,7 +584,7 @@ class ManageStash:
 
         result: list[str, list[Scrape]] = list()
         result: list[Scrape] = list()
-        for stashbox in filter(lambda x: x.tag_name in ["MATCH_STASHDB", "MATCH_PORNDB", "MATCH_FANSDB"],
+        for stashbox in filter(lambda x: x.tag_name in ["MATCH_STASHDB", "MATCH_PORNDB"],
                                stashbox_list):
             scrape_list = self.get_scrape_scene(s, scene_list, stashbox)
             result = result + scrape_list
@@ -613,7 +613,7 @@ class ManageStash:
         tags_list: List[Tags] = self.get_tags(s)
         stashbox_list: List[StashBox] = self.get_stashbox_list(s, tags_list)
 
-        for stashbox in filter(lambda x: x.tag_name in ["MATCH_STASHDB", "MATCH_PORNDB", "MATCH_FANSDB"],
+        for stashbox in filter(lambda x: x.tag_name in ["MATCH_STASHDB", "MATCH_PORNDB"],
                                stashbox_list):
             scene_filter = SceneFilter(organized=False, tags_includes=[stashbox.tag_name],
                                        tags_excludes=([MATCHES_FILTERED, MATCHES_FALSE_POSITIVE, MATCHES_DONE]),
@@ -635,7 +635,7 @@ class ManageStash:
         # log_block(stashbox_list, "STASHBOX LIST")
 
         result: list[Scrape] = list()
-        for stashbox in filter(lambda x: x.tag_name in ["MATCH_STASHDB", "MATCH_PORNDB", "MATCH_FANSDB", "MATCH_PMV"],
+        for stashbox in filter(lambda x: x.tag_name in ["MATCH_STASHDB", "MATCH_PORNDB"],
                                stashbox_list):
             # TODO: modify scene_number to 400 when all is ok
             result = result + self.find_update_scene_by_stashbox(s, stashbox, tags_list, 2, dry_run=dry_run)
@@ -897,8 +897,9 @@ class ManageStash:
 
         if args.reset_scene_path:
             for x in args.path:
-                for y in range(1, 4):
-                    self.process_reset_scene_path(stash, path=x, reset_scene_max_number=50, dry_run=False)
+                for y in range(1, 10):
+                    self.logger.log("Resetting scene path - run number " + str(y))
+                    self.process_reset_scene_path(stash, path=x, reset_scene_max_number=100, dry_run=False)
 
         if args.test:
             self.process_test(stash, False)
