@@ -44,7 +44,18 @@ class Scraper:
             "accept-language"] = "en-US,en;q=0.9,it-IT;q=0.8,it;q=0.7,es-ES;q=0.6,es;q=0.5,pt-BR;q=0.4,pt;q=0.3"
         session.headers[
             "user-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0"
-        response = session.get(self.url)
+        for attempt in range(10):
+            try:
+                response = session.get(self.url)
+                response.raise_for_status()  # Solleva un'eccezione per errori HTTP
+                break  # Esce dal ciclo se l'operazione ha successo
+            except requests.RequestException as e:
+                print(f"Tentativo {attempt + 1} fallito: {e}")
+                if attempt < 10 - 1:
+                    time.sleep(3)  # Aspetta prima di ritentare
+                else:
+                    print("Numero massimo di tentativi raggiunto. Operazione fallita.")
+                    raise  # Rilancia l'eccezione se tutti i tentativi falliscono
         soup = BeautifulSoup(response.text, 'html.parser')
 
         # FInd the root path
