@@ -214,8 +214,12 @@ def phashes_match(match: Match, phash: str) -> (int, int):
     # Calc the number of exact phase match and number of similar phashes match
     # The calculation is made only on PHASH fingerprints
     phashes = [y for y in match.fingerprints if y.algorithm == "PHASH"]
-    return sum(1 for x in phashes if x.hash == phash), sum(
-        1 for x in phashes if sum(1 for a, b in zip(x.hash, phash) if a != b) <= 4)
+    if phash is None:
+        result1, result2 = 0, 0
+    else:
+        result1, result2 = sum(1 for x in phashes if x.hash == phash), sum(
+            1 for x in phashes if sum(1 for a, b in zip(x.hash, phash) if a != b) <= 4)
+    return result1, result2
 
 
 def is_same_date(match: Match, filename: str) -> bool:
@@ -232,17 +236,20 @@ def is_match(match: Match, filename: str, duration_matches_total: int, duration_
     result: bool = False
     same_date: bool = False
     if phashes_matches_exact > 0 and (
-            duration_matches_number == duration_matches_total or duration_matches_number >= 10):
+            (duration_matches_number == duration_matches_total and duration_matches_number >= 3)
+            or duration_matches_number >= 10):
         # At least one Exact match and all duration equal or duration equal number >= 10
         result = True
-    elif phashes_matches_number > 1 and duration_matches_number == duration_matches_total:
+    elif (phashes_matches_number > 1
+          and (duration_matches_number == duration_matches_total and duration_matches_number >= 3)):
         # At least one similar match and all duration equal
         result = True
     same_date = is_same_date(match, filename)
     if phashes_matches_exact > 0 and duration_matches_number > 5 and same_date is True:
         # At least one Exact match and duration equal number > 5 and date match
         result = True
-    elif duration_matches_number == duration_matches_total and same_date is True:
+    elif ((duration_matches_number == duration_matches_total and duration_matches_number >= 3)
+          and same_date is True):
         #  all duration equal and date match
         result = True
 
