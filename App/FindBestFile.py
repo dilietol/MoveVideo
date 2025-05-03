@@ -11,6 +11,7 @@ class FileSlim:
     id_file: int
     organized: bool
     width: int
+    height: int
     video_codec: float
     size: int
     duration: float
@@ -57,20 +58,20 @@ class DuplicatedFiles:
                 self.why = "Duration not valid"
             else:
                 organized_requested = not check_organized(self.files)
-                files_dict_2 = select_by_width(self.files)
+                files_dict_2 = select_by_height(self.files)
                 if len(files_dict_2) == 0:
                     self.id = 0
                     self.id_file = 0
-                    self.why = "Not good width"
+                    self.why = "Not good height"
                 elif len(files_dict_2) == 1:
                     if organized_requested and not files_dict_2[0].organized:
                         self.id = 0
                         self.id_file = 0
-                        self.why = "Best width not organized"
+                        self.why = "Best height not organized"
                     else:
                         self.id = files_dict_2[0].id
                         self.id_file = files_dict_2[0].id_file
-                        self.why = "Best width"
+                        self.why = "Best height"
                         self.to_delete, self.to_delete_files, self.to_delete_size = files_to_delete(self.files, self.id,
                                                                                                     self.id_file)
                 else:
@@ -164,6 +165,21 @@ def select_by_width(files_dict: List[FileSlim]) -> List[FileSlim]:
 
     # Select all occurrences with attribute 'width' equal to the maximum value
     matching_elements: list[FileSlim] = [elem for elem in files_dict if elem.width == max_width]
+    return matching_elements
+
+def select_by_height(files_dict: List[FileSlim]) -> List[FileSlim]:
+    # Find the maximum value of the attribute "height"
+    max_height = max(elem.height for elem in files_dict)
+    # Select all occurrences with attribute 'height' equal to the maximum value
+    matching_elements: list[FileSlim] = [elem for elem in files_dict if elem.height == max_height]
+
+    elements_1080: list[FileSlim] = [elem for elem in files_dict if elem.height == 1080]
+    if len(elements_1080) >= 1:
+        matching_elements = elements_1080
+    else:
+        elements_720: list[FileSlim] = [elem for elem in files_dict if elem.height == 720]
+        if len(elements_720) >= 1:
+            matching_elements = elements_720
     return matching_elements
 
 

@@ -85,6 +85,7 @@ class ManageStash:
             file_slims.append(FileSlim(id=item.get("id"), organized=item.get("organized"),
                                        id_file=file.get("id"),
                                        width=file.get("width"),
+                                       height=file.get("height"),
                                        video_codec=file.get("video_codec"),
                                        size=file.get("size"),
                                        duration=file.get("duration"),
