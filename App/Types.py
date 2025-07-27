@@ -207,7 +207,7 @@ def duration_match(match: Match, duration: float) -> (int, int):
         # differ for less than 1.5 seconds
         abs(x.duration - duration) < 1.5
         # percentage of the entire length: difference in less than 0,3% (5 is acceptable for a length of 1930
-        or ((abs(x.duration - duration)) * 1000 / duration) < 3)
+        or ((abs(x.duration - duration)) * 1000 / x.duration) < 3)
 
 
 def phashes_match(match: Match, phash: str) -> (int, int):
