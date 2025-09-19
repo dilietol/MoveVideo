@@ -19,6 +19,7 @@ MATCHES_DONE = "MATCH_DONE"  # Tag to add to scene when is processed
 MATCHES_UNKNOWN = "UNKNOWN"  # Tag to add to scene when is unknown
 MATCHES_SCENES_PAGE = 200
 MATCHES_SCENES_MAX = 400
+MATCHES_SCENES_FALSE_POSITIVE_MAX = 800
 MATCHES_SCENES_START_PAGE = 1
 MATCHES_SCENES_INTERNAL_PAGE = 50
 SCENES_MAX = 1000
@@ -583,12 +584,26 @@ class ManageStash:
         # Find scenes to match
         scene_list = self.find_scenes_to_match(s, tags_list, stashbox_list, scene_max_number)
 
-        result: list[str, list[Scrape]] = list()
-        result: list[Scrape] = list()
-        for stashbox in filter(lambda x: x.tag_name in ["MATCH_STASHDB", "MATCH_PORNDB"],
-                               stashbox_list):
-            scrape_list = self.get_scrape_scene(s, scene_list, stashbox)
-            result = result + scrape_list
+        result: list[Scrape] = []
+        # Filter stashboxes to process
+        stashboxes_to_process = [sb for sb in stashbox_list if sb.tag_name in ["MATCH_STASHDB", "MATCH_PORNDB"]]
+        
+        # Process stashboxes in parallel
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            # Submit all tasks
+            future_to_stashbox = {
+                executor.submit(self.get_scrape_scene, s, scene_list, stashbox): stashbox 
+                for stashbox in stashboxes_to_process
+            }
+            
+            # Process results as they complete
+            for future in concurrent.futures.as_completed(future_to_stashbox):
+                stashbox = future_to_stashbox[future]
+                try:
+                    scrape_list = future.result()
+                    result.extend(scrape_list)
+                except Exception as exc:
+                    self.logger.log(f"{stashbox.name} generated an exception: {exc}")
 
         # log("SCRAPE LIST: " + str(result))
 
@@ -674,7 +689,7 @@ class ManageStash:
         scene_filter = SceneFilter(organized=False,
                                    tags_includes=[MATCHES_FALSE_POSITIVE],
                                    tags_excludes=([]))
-        scene_list = self.find_scenes_by_included_all_tags(s, tags_list, scene_filter, MATCHES_SCENES_MAX)
+        scene_list = self.find_scenes_by_included_all_tags(s, tags_list, scene_filter, MATCHES_SCENES_FALSE_POSITIVE_MAX)
 
         # filter scenes with only false positives and unknown
         scene_list_filtered = []
