@@ -1,9 +1,8 @@
-requests == 2.32.3
-feedgenerator~=2.1.0
+requests == 2.32.5
+feedgenerator~=2.2.1
 schedule~=1.2.2
 beautifulsoup4~=4.13.0b2
 Flask~=3.1.0
-stashapp-tools == 0.2.55
-qbittorrent-api==2025.4.1
+stashapp-tools == 0.2.58
+qbittorrent-api==2025.7.0
 jsonpath-ng==1.7.0
-feedgenerator~=2.1.0
