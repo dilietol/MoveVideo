@@ -333,7 +333,7 @@ def find_matches(s: StashInterface, scene: Scene, stashbox: StashBox) -> List[Ma
     # Try scraping the scene data up to 3 times
     for _ in range(3):
         try:
-            data = s.scrape_scene({"stash_box_index": stashbox.id}, {"scene_id": scene.id})
+            data = s.scrape_scene({"stash_box_endpoint": stashbox.url}, {"scene_id": scene.id})
             break
         except Exception as e:
             print(f"Received a GraphQL exception : {e}")
