@@ -253,7 +253,7 @@ class ManageStash:
         found = False
         for i in range(3):
             try:
-                data = s.scrape_scene({"stash_box_index": stashbox.id}, {"scene_id": scene.id})
+                data = s.scrape_scene({"stash_box_endpoint": stashbox.url}, {"scene_id": scene.id})
                 break
             except Exception as e:
                 self.logger.log("FAILED TO SCRAPE SCENE %s FROM STASHBOX %s" % (scene.id, stashbox.name))
@@ -925,5 +925,6 @@ if __name__ == "__main__":
     # TODO move Shoko integration in an other class
     # TODO fix log timezone
     # TODO add a method to remove tag UNKOWN from all scenes
+    # TODO Add management of dimension in compare
     manage_stash = ManageStash()
     manage_stash.main()
