@@ -40,95 +40,130 @@ class DuplicatedFiles:
         self.to_delete_files = []
         self.to_delete_size = 0
         if len(self.files) == 0:
+            # Error: No files
             self.id = 0
             self.id_file = 0
             self.why = "No files"
         elif len(self.files) == 1:
+            # Error: Just one file
             self.id = 0
             self.id_file = 0
             self.why = "No duplicates"
         else:
             if not is_duration_minimum(self.files):
+                # Warning: No files with a duration above minimum
                 self.id = 0
                 self.id_file = 0
                 self.why = "Duration below minimum"
             elif not is_duration_correct(self.files):
+                # Warning: Files with different duration; maybe not similar
                 self.id = 0
                 self.id_file = 0
-                self.why = "Duration not valid"
+                self.why = "Duration not valid Maybe not similar"
             else:
                 organized_requested = not check_organized(self.files)
-                files_dict_2 = select_by_height(self.files)
-                if len(files_dict_2) == 0:
-                    self.id = 0
-                    self.id_file = 0
-                    self.why = "Not good height"
-                elif len(files_dict_2) == 1:
-                    if organized_requested and not files_dict_2[0].organized:
+                files_dict = filter_by_size(self.files)
+                if len(files_dict) == 1:
+                    # Just one file beyond size limit 3 GB
+                    if organized_requested and not files_dict[0].organized:
                         self.id = 0
                         self.id_file = 0
-                        self.why = "Best height not organized"
+                        self.why = "Best file below 3 GB not organized"
                     else:
-                        self.id = files_dict_2[0].id
-                        self.id_file = files_dict_2[0].id_file
-                        self.why = "Best height"
+                        self.id = files_dict[0].id
+                        self.id_file = files_dict[0].id_file
+                        self.why = "Size above 3 GB"
                         self.to_delete, self.to_delete_files, self.to_delete_size = files_to_delete(self.files, self.id,
-                                                                                                    self.id_file)
+                                                                                                self.id_file)
                 else:
-                    files_dict_3 = select_by_codec(files_dict_2)
-                    if len(files_dict_3) == 0:
+                    if len(files_dict) == 0:
+                        # All files with size above limit: no filter by size applied
+                        files_dict_2 = select_by_height(self.files)
+                    else:
+                        # More than one files with size below limit: applying filter by height
+                        files_dict_2 = select_by_height(files_dict)
+                    if len(files_dict_2) == 0:
+                        # Error: something goes wrong with height filter
                         self.id = 0
                         self.id_file = 0
-                        self.why = "Not good codec"
-                    elif len(files_dict_3) == 1:
-                        if organized_requested and not files_dict_3[0].organized:
+                        self.why = "Not good height"
+                    elif len(files_dict_2) == 1:
+                        # Just one file with best height
+                        if organized_requested and not files_dict_2[0].organized:
                             self.id = 0
                             self.id_file = 0
-                            self.why = "Best codec not organized"
+                            self.why = "Best height not organized"
                         else:
-                            self.id = files_dict_3[0].id
-                            self.id_file = files_dict_3[0].id_file
-                            self.why = "Best codec"
+                            self.id = files_dict_2[0].id
+                            self.id_file = files_dict_2[0].id_file
+                            self.why = "Best height"
                             self.to_delete, self.to_delete_files, self.to_delete_size = files_to_delete(self.files,
-                                                                                                        self.id,
-                                                                                                        self.id_file)
+                                                                                                self.id,
+                                                                                                self.id_file)
                     else:
-                        files_dict_4 = select_by_size(files_dict_3)
-                        if len(files_dict_4) == 0:
+                        # More than one file with a best height: applying filter by codec
+                        files_dict_3 = select_by_codec(files_dict_2)
+                        if len(files_dict_3) == 0:
+                            # Warning : not file with supported codec
                             self.id = 0
                             self.id_file = 0
-                            self.why = "Not good size"
-                        elif len(files_dict_4) == 1:
-                            if organized_requested and not files_dict_4[0].organized:
+                            self.why = "Not good codec"
+                        elif len(files_dict_3) == 1:
+                            # Just one file with best codec
+                            if organized_requested and not files_dict_3[0].organized:
                                 self.id = 0
                                 self.id_file = 0
-                                self.why = "Best size not organized"
+                                self.why = "Best codec not organized"
                             else:
-                                self.id = files_dict_4[0].id
-                                self.id_file = files_dict_4[0].id_file
-                                self.why = "Best size"
+                                self.id = files_dict_3[0].id
+                                self.id_file = files_dict_3[0].id_file
+                                self.why = "Best codec"
                                 self.to_delete, self.to_delete_files, self.to_delete_size = files_to_delete(self.files,
                                                                                                             self.id,
                                                                                                             self.id_file)
                         else:
-                            organized_one = [elem for elem in files_dict_4 if elem.organized]
-                            if len(organized_one) == 1:
-                                self.id = organized_one[0].id
-                                self.id_file = organized_one[0].id_file
-                                self.why = "One organized among equal files"
-                                self.to_delete, self.to_delete_files, self.to_delete_size = files_to_delete(self.files,
-                                                                                                            self.id,
-                                                                                                            self.id_file)
-                            elif len(organized_one) > 1:
-                                self.id, self.id_file = select_among_equal_organized(organized_one)
-                                self.why = "Selected among many organized equal files"
-                                self.to_delete, self.to_delete_files, self.to_delete_size = files_to_delete(self.files,
-                                                                                                            self.id,
-                                                                                                            self.id_file)
-                            else:
+                            # More than one file with a best codec: applying filter by size
+                            files_dict_4 = select_by_size(files_dict_3)
+                            if len(files_dict_4) == 0:
+                                # Error: something goes wrong with size filter
                                 self.id = 0
                                 self.id_file = 0
-                                self.why = "No organized among equal file"
+                                self.why = "Not good size"
+                            elif len(files_dict_4) == 1:
+                                # Just one file with best size
+                                if organized_requested and not files_dict_4[0].organized:
+                                    self.id = 0
+                                    self.id_file = 0
+                                    self.why = "Best size not organized"
+                                else:
+                                    self.id = files_dict_4[0].id
+                                    self.id_file = files_dict_4[0].id_file
+                                    self.why = "Best size"
+                                    self.to_delete, self.to_delete_files, self.to_delete_size = files_to_delete(self.files,
+                                                                                                                self.id,
+                                                                                                                self.id_file)
+                            else:
+                                # More than one file with a best size: applying filter by organized
+                                organized_one = [elem for elem in files_dict_4 if elem.organized]
+                                if len(organized_one) == 1:
+                                    # Just one file organized
+                                    self.id = organized_one[0].id
+                                    self.id_file = organized_one[0].id_file
+                                    self.why = "One organized among equal files"
+                                    self.to_delete, self.to_delete_files, self.to_delete_size = files_to_delete(self.files,
+                                                                                                                self.id,
+                                                                                                                self.id_file)
+                                elif len(organized_one) > 1:
+                                    # More than one file organized
+                                    self.id, self.id_file = select_among_equal_organized(organized_one)
+                                    self.why = "Selected among many organized equal files"
+                                    self.to_delete, self.to_delete_files, self.to_delete_size = files_to_delete(self.files,
+                                                                                                                self.id,
+                                                                                                                self.id_file)
+                                else:
+                                    self.id = 0
+                                    self.id_file = 0
+                                    self.why = "No organized among equal file"
 
 
 def check_organized(array: list[FileSlim]):
@@ -173,6 +208,7 @@ def select_by_height(files_dict: List[FileSlim]) -> List[FileSlim]:
     # Select all occurrences with attribute 'height' equal to the maximum value
     matching_elements: list[FileSlim] = [elem for elem in files_dict if elem.height == max_height]
 
+    # Prefer 1080 over 720 over other
     elements_1080: list[FileSlim] = [elem for elem in files_dict if elem.height == 1080]
     if len(elements_1080) >= 1:
         matching_elements = elements_1080
@@ -180,6 +216,12 @@ def select_by_height(files_dict: List[FileSlim]) -> List[FileSlim]:
         elements_720: list[FileSlim] = [elem for elem in files_dict if elem.height == 720]
         if len(elements_720) >= 1:
             matching_elements = elements_720
+    return matching_elements
+
+def filter_by_size(files_dict: List[FileSlim]) -> List[FileSlim]:
+    # Drops files with size above 3 GB
+    max_size = 3221225472 # 3 GB
+    matching_elements: list[FileSlim] = [elem for elem in files_dict if elem.size <= max_size]
     return matching_elements
 
 
@@ -207,8 +249,8 @@ def select_by_codec(files_dict) -> List[FileSlim]:
 
 
 def select_by_size(files_dict: List[FileSlim]) -> List[FileSlim]:
-    max_value = max(files_dict, key=lambda x: x.size).size
-    result = list(filter(lambda x: x.size == max_value, files_dict))
+    min_value = min(files_dict, key=lambda x: x.size).size
+    result = list(filter(lambda x: x.size == min_value, files_dict))
     return result
 
 
@@ -220,7 +262,7 @@ def files_to_delete(files_dict: list[FileSlim], best_scene_id: int, best_file_id
                       elem.id_file != best_file_id]) / 1024 / 1024 / 1024), 2))
 
 
-def select_among_equal_organized(organized_one: [FileSlim]):
+def select_among_equal_organized(organized_one: List [FileSlim]):
     id = organized_one[0].id
     id_file = organized_one[0].id_file
 
