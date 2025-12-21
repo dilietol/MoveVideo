@@ -63,7 +63,7 @@ class Studio:
     json: str
     stored_id: str = field(init=False)
     name: str = field(init=False)
-    url: str = field(init=False)
+    urls: List[str] = field(init=False)
     parent: str = field(init=False)
     image: str = field(init=False)
     remote_site_id: str = field(init=False)
@@ -71,7 +71,7 @@ class Studio:
     def __post_init__(self) -> None:
         self.stored_id = self.json["stored_id"]
         self.name = self.json["name"]
-        self.url = self.json["url"]
+        self.urls = self.json["urls"]
         self.parent = self.json["parent"]
         self.image = self.json["image"]
         self.remote_site_id = self.json["remote_site_id"]
