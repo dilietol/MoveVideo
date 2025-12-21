@@ -410,7 +410,7 @@ class ManageStash:
         try:
 
             s.create_studio(
-                {"name": studio.name, "url": studio.url,
+                {"name": studio.name, "urls": studio.urls,
                  "parent_id": studio.parent.get("stored_id") if studio.parent is not None else None,
                  "image": studio.image,
                  "stash_ids": [{"endpoint": stashbox.url, "stash_id": studio.remote_site_id}]})
