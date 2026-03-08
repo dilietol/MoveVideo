@@ -635,7 +635,7 @@ class ManageStash:
                                        tags_excludes=([MATCHES_FILTERED, MATCHES_FALSE_POSITIVE, MATCHES_DONE]),
                                        path=path)
             # log("Scene filter: " + str(scene_filter))
-            scene_list = self.find_scenes_by_tags_path(s, tags_list, scene_filter, 168)
+            scene_list = self.find_scenes_by_tags_path(s, tags_list, scene_filter, 400)
 
             # log_block(scene_list, "SCENES FOUND")
 
