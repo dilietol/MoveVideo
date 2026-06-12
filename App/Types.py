@@ -95,7 +95,7 @@ class Performer:
     fake_tits: str = field(init=False)
     penis_length: str = field(init=False)
     circumcised: str = field(init=False)
-    career_length: str = field(init=False)
+    ##career_length: str = field(init=False)
     tattoos: str = field(init=False)
     piercings: str = field(init=False)
     aliases: str = field(init=False)
@@ -121,7 +121,7 @@ class Performer:
         self.fake_tits = self.json["fake_tits"]
         self.penis_length = self.json["penis_length"]
         self.circumcised = self.json["circumcised"]
-        self.career_length = self.json["career_length"]
+        ##self.career_length = self.json["career_length"]
         self.tattoos = self.json["tattoos"]
         self.piercings = self.json["piercings"]
         self.aliases = self.json["aliases"]
