@@ -1,8 +1,10 @@
-FROM python:3.12
+FROM python:3.12-slim
 
 # Installazione di pacchetti necessari
-RUN apt-get update && apt-get -y install cron vim tzdata && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y cron vim tzdata && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Imposta la directory di lavoro
 WORKDIR /app
