@@ -9,11 +9,36 @@ from Log import Logger
 
 VERSION = "0.1"
 
-DIR_IN = "in"
-DIR_OUT = "out"
+# Convert to proper class-based configuration
+class MoveVideoConfig:
+    def __init__(self, in_dir="in", out_dir="out", min_dir_size=1000):
+        self.in_dir = in_dir
+        self.out_dir = out_dir
+        self.min_dir_size = min_dir_size
+        self.validate_directories()
+
+    def validate_directories(self):
+        if not os.path.exists(self.in_dir):
+            raise ValueError(f"Input directory {self.in_dir} does not exist")
+        if not os.path.isdir(self.in_dir):
+            raise ValueError(f"Input path {self.in_dir} is not a directory")
+        if not os.access(self.in_dir, os.R_OK):
+            raise PermissionError(f"No read permission for input directory {self.in_dir}")
+        if not os.path.exists(self.out_dir):
+            raise ValueError(f"Output directory {self.out_dir} does not exist")
+        if not os.path.isdir(self.out_dir):
+            raise ValueError(f"Output path {self.out_dir} is not a directory")
+        if not os.access(self.out_dir, os.W_OK):
+            raise PermissionError(f"No write permission for output directory {self.out_dir}")
+
+
+config = MoveVideoConfig()
+
+DIR_IN = config.in_dir
+DIR_OUT = config.out_dir
 DIR_OUT_ROOT = "."
 DIR_OUT_LABEL = "out"
-MIN_DIR_SIZE = 1000
+MIN_DIR_SIZE = config.min_dir_size
 
 if not os.path.isdir(DIR_IN):
     raise Exception(f"Directory {DIR_IN} does not exist")
@@ -66,6 +91,15 @@ class MoveVideo:
             key: str = self.extract_key_from_filename(txt_file.name)
             item_list.append(Item(txt_file.name, txt_file, key.lower()))
         for txt_file in Path(DIR_IN).rglob('*.mp4'):
+            key: str = self.extract_key_from_filename(txt_file.name)
+            item_list.append(Item(txt_file.name, txt_file, key.lower()))
+        for txt_file in Path(DIR_IN).rglob('*.wmv'):
+            key: str = self.extract_key_from_filename(txt_file.name)
+            item_list.append(Item(txt_file.name, txt_file, key.lower()))
+        for txt_file in Path(DIR_IN).rglob('*.mov'):
+            key: str = self.extract_key_from_filename(txt_file.name)
+            item_list.append(Item(txt_file.name, txt_file, key.lower()))
+        for txt_file in Path(DIR_IN).rglob('*.flv'):
             key: str = self.extract_key_from_filename(txt_file.name)
             item_list.append(Item(txt_file.name, txt_file, key.lower()))
         return item_list
@@ -143,6 +177,9 @@ class MoveVideo:
         self.logger.log("Missing keys:")
         self.logger.log(missing_key_list)
 
+        # Add progress indicator for large operations
+        total_keys = len(found_key_list)
+        processed_count = 0
         for key_name in found_key_list:
             destination_dir = [x.Path for x in destination_list if x.Key == key_name]
             source_files = [x.Path for x in source_list if x.Key == key_name]
@@ -151,6 +188,9 @@ class MoveVideo:
                 destination_file = os.path.join(str(Path(destination_dir[0])), os.path.basename(source_file))
                 shutil.move(str(Path(source_file)), destination_file)
                 self.logger.log(f"Moved {source_file} to {destination_file}")
+
+            processed_count += 1
+            self.logger.log(f"Processed {processed_count}/{total_keys} keys")
 
         self.logger.log_end(f"Moving files from {DIR_IN} to {dir_out}")
 
