@@ -18,12 +18,15 @@ class MoveVideoConfig:
         self.validate_directories()
 
     def validate_directories(self):
+        # Verifica la directory di input
         if not os.path.exists(self.in_dir):
             raise ValueError(f"Input directory {self.in_dir} does not exist")
         if not os.path.isdir(self.in_dir):
             raise ValueError(f"Input path {self.in_dir} is not a directory")
         if not os.access(self.in_dir, os.R_OK):
             raise PermissionError(f"No read permission for input directory {self.in_dir}")
+        
+        # Verifica la directory di output
         if not os.path.exists(self.out_dir):
             raise ValueError(f"Output directory {self.out_dir} does not exist")
         if not os.path.isdir(self.out_dir):
@@ -82,26 +85,13 @@ class MoveVideo:
         Item = namedtuple("Item", ["File", "Path", "Key"])
         item_list: List[Item] = list()
 
-        # Cerca tutti i file .mkv, .avi e .mp4 in modo ricorsivo all'interno della directory DIR_IN
+        # Cerca tutti i file video in modo ricorsivo all'interno della directory DIR_IN
         # e salva il nome del file, il percorso completo e la chiave del file nella lista degli oggetti "Item"
-        for txt_file in Path(DIR_IN).rglob('*.mkv'):
-            key: str = self.extract_key_from_filename(txt_file.name)
-            item_list.append(Item(txt_file.name, txt_file, key.lower()))
-        for txt_file in Path(DIR_IN).rglob('*.avi'):
-            key: str = self.extract_key_from_filename(txt_file.name)
-            item_list.append(Item(txt_file.name, txt_file, key.lower()))
-        for txt_file in Path(DIR_IN).rglob('*.mp4'):
-            key: str = self.extract_key_from_filename(txt_file.name)
-            item_list.append(Item(txt_file.name, txt_file, key.lower()))
-        for txt_file in Path(DIR_IN).rglob('*.wmv'):
-            key: str = self.extract_key_from_filename(txt_file.name)
-            item_list.append(Item(txt_file.name, txt_file, key.lower()))
-        for txt_file in Path(DIR_IN).rglob('*.mov'):
-            key: str = self.extract_key_from_filename(txt_file.name)
-            item_list.append(Item(txt_file.name, txt_file, key.lower()))
-        for txt_file in Path(DIR_IN).rglob('*.flv'):
-            key: str = self.extract_key_from_filename(txt_file.name)
-            item_list.append(Item(txt_file.name, txt_file, key.lower()))
+        video_extensions = ['*.mkv', '*.avi', '*.mp4', '*.wmv', '*.mov', '*.flv']
+        for ext in video_extensions:
+            for txt_file in Path(DIR_IN).rglob(ext):
+                key: str = self.extract_key_from_filename(txt_file.name)
+                item_list.append(Item(txt_file.name, txt_file, key.lower()))
         return item_list
 
     def generate_destination_list(self, dir_out=DIR_OUT):
@@ -126,18 +116,21 @@ class MoveVideo:
         return item_list
 
     def extract_key_from_filename(self, file_in):
-        if file_in.find('[') == 0:
-            if file_in.find(']') != -1:
-                # Se il nome del file inizia con "[", allora assume che ci sia una chiave tra parentesi quadre
-                result = file_in[file_in.find('[') + 1:file_in.find(']')]
-                return result
-        keys = file_in.split('.')
-        alt_keys = file_in.split(' ')
-        if len(alt_keys[0]) < len(keys[0]):
-            result = alt_keys[0]
+        # Se inizia con [tag], usa il tag tra parentesi quadre
+        if file_in.startswith('['):
+            end_bracket = file_in.find(']')
+            if end_bracket != -1:
+                return file_in[1:end_bracket]
+        
+        # Altrimenti, usa la parte prima del primo punto o spazio
+        parts = file_in.split('.')
+        alt_parts = file_in.split(' ')
+        
+        # Scegli tra i due metodi basato sulla lunghezza
+        if len(alt_parts) > 0 and (len(alt_parts[0]) < len(parts[0]) or len(parts) == 1):
+            return alt_parts[0]
         else:
-            result = keys[0]
-        return result
+            return parts[0]
 
     def extract_keys_from_directory_name(self, file_in):
         result = list()
@@ -154,6 +147,20 @@ class MoveVideo:
         self.logger.log_start(f"Moving files from {DIR_IN} to {dir_out}")
         source_list = self.generate_source_list()
         destination_list = self.generate_destination_list(dir_out)
+
+        # Verifica che ci siano file da spostare
+        if not source_list:
+            self.logger.log("No video files found in source directory")
+            return
+        else:
+            self.logger.log(f"Found {len(source_list)} video files in source directory")
+
+        # Verifica che ci siano directory di destinazione
+        if not destination_list:
+            self.logger.log("No destination directories found")
+            return
+        else:
+            self.logger.log(f"Found {len(destination_list)} destination directories")
 
         source_key_list = [sub.Key for sub in source_list]
         source_filename_list = [sub.File for sub in source_list]
@@ -177,17 +184,24 @@ class MoveVideo:
         self.logger.log("Missing keys:")
         self.logger.log(missing_key_list)
 
-        # Add progress indicator for large operations
+        # Aggiungi indicatore di avanzamento per operazioni grandi
         total_keys = len(found_key_list)
         processed_count = 0
         for key_name in found_key_list:
             destination_dir = [x.Path for x in destination_list if x.Key == key_name]
             source_files = [x.Path for x in source_list if x.Key == key_name]
 
+            if not destination_dir:
+                self.logger.log(f"No destination directory found for key {key_name}")
+                continue
+
             for source_file in source_files:
-                destination_file = os.path.join(str(Path(destination_dir[0])), os.path.basename(source_file))
-                shutil.move(str(Path(source_file)), destination_file)
-                self.logger.log(f"Moved {source_file} to {destination_file}")
+                try:
+                    destination_file = os.path.join(str(Path(destination_dir[0])), os.path.basename(source_file))
+                    shutil.move(str(Path(source_file)), destination_file)
+                    self.logger.log(f"Moved {source_file} to {destination_file}")
+                except Exception as e:
+                    self.logger.log(f"Error moving {source_file}: {str(e)}")
 
             processed_count += 1
             self.logger.log(f"Processed {processed_count}/{total_keys} keys")
