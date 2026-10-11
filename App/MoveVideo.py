@@ -35,25 +35,13 @@ class MoveVideoConfig:
         if not os.access(self.out_dir, os.W_OK):
             raise PermissionError(f"No write permission for output directory {self.out_dir}")
 
-
-config = MoveVideoConfig()
-
-DIR_IN = config.in_dir
-DIR_OUT = config.out_dir
-DIR_OUT_ROOT = "."
-DIR_OUT_LABEL = "out"
-MIN_DIR_SIZE = config.min_dir_size
-
-if not os.path.isdir(DIR_IN):
-    raise Exception(f"Directory {DIR_IN} does not exist")
-
-if not os.path.isdir(DIR_OUT):
-    raise Exception(f"Directory {DIR_OUT} does not exist")
-
-
 class MoveVideo:
     def __init__(self):
         self.logger = Logger("MoveVideo")
+        self.config = MoveVideoConfig()
+        self.dir_in = self.config.in_dir
+        self.dir_out = self.config.out_dir
+        self.min_dir_size = self.config.min_dir_size
 
     def get_directory_size(self, directory_path):
         total_size = 0
@@ -68,11 +56,11 @@ class MoveVideo:
     def delete_small_directories(self, directory_path):
         self.logger.log_start(f"Deleting small directories in {directory_path}")
         for root, dirs, files in os.walk(directory_path):
-            for dir in dirs:
-                dir_path = os.path.join(root, dir)
+            for dir_name in dirs:
+                dir_path = os.path.join(str(root), str(dir_name))
                 size = self.get_directory_size(dir_path)
                 self.logger.log(f"Size {dir_path} is {size} bytes")
-                if size < MIN_DIR_SIZE:
+                if size < self.min_dir_size:
                     for file_name in os.listdir(dir_path):
                         file_path = os.path.join(dir_path, file_name)
                         if os.path.isfile(file_path):
@@ -90,12 +78,13 @@ class MoveVideo:
         # and save the file name, full path and file key in the list of "Item" objects
         video_extensions = ['*.mkv', '*.avi', '*.mp4', '*.wmv', '*.mov', '*.flv']
         for ext in video_extensions:
-            for txt_file in Path(DIR_IN).rglob(ext):
+            for txt_file in Path(self.dir_in).rglob(ext):
                 key: str = self.extract_key_from_filename(txt_file.name)
                 item_list.append(Item(txt_file.name, txt_file, key.lower()))
         return item_list
 
-    def generate_destination_list(self, dir_out=DIR_OUT):
+    @staticmethod
+    def generate_destination_list(dir_out):
         Item = namedtuple("Item", ["Dir", "Path", "Key"])
         item_list: List[Item] = list()
         p = Path(dir_out)
@@ -104,7 +93,7 @@ class MoveVideo:
         # For each found directory name, extract keys from the directory name
         # and save them in the list of "Item" objects
         for txt_file in [f for f in p.iterdir() if (f.is_dir() or f.is_symlink())]:
-            keys = self.extract_keys_from_directory_name(txt_file.name)
+            keys = MoveVideo.extract_keys_from_directory_name(txt_file.name)
             for key in keys:
                 if key.startswith("_"):
                     # Remove underscore for directories with multi group (starting with underscore)
@@ -116,7 +105,8 @@ class MoveVideo:
                         item_list.append(Item(txt_file.name, txt_file.resolve(), key[:-1]))
         return item_list
 
-    def extract_key_from_filename(self, file_in):
+    @staticmethod
+    def extract_key_from_filename(file_in):
         # If it starts with [tag], use the tag between square brackets
         if file_in.startswith('['):
             end_bracket = file_in.find(']')
@@ -133,7 +123,8 @@ class MoveVideo:
         else:
             return parts[0]
 
-    def extract_keys_from_directory_name(self, file_in):
+    @staticmethod
+    def extract_keys_from_directory_name(file_in):
         result = list()
         keys = file_in.split('.')
         for sub in keys:
@@ -144,7 +135,8 @@ class MoveVideo:
                 result.append(key[:-1])
         return result
 
-    def is_video_file(self, file_path):
+    @staticmethod
+    def is_video_file(file_path):
         """Verify if the file is actually a video file"""
         try:
             # Extract extension
@@ -154,8 +146,8 @@ class MoveVideo:
         except Exception:
             return False
 
-    def move_files(self, dir_out=DIR_OUT):
-        self.logger.log_start(f"Moving files from {DIR_IN} to {dir_out}")
+    def move_files(self, dir_out):
+        self.logger.log_start(f"Moving files from {self.dir_in} to {dir_out}")
         source_list = self.generate_source_list()
         destination_list = self.generate_destination_list(dir_out)
 
@@ -175,17 +167,12 @@ class MoveVideo:
 
         source_key_list = [sub.Key for sub in source_list]
         source_filename_list = [sub.File for sub in source_list]
-        destination_dir_list = [sub.Dir for sub in destination_list]
         destination_key_list = [sub.Key for sub in destination_list]
 
         self.logger.log("Source filenames:")
         self.logger.log(source_filename_list)
         self.logger.log("Source keys:")
         self.logger.log(source_key_list)
-        #    log("Destination directories:")
-        #    log(destination_dir_list)
-        # log("Destination keys:")
-        # log(destination_key_list)
 
         found_key_list = list(set(source_key_list) & set(destination_key_list))
         missing_key_list = list(set(source_key_list) - set(destination_key_list))
@@ -213,7 +200,7 @@ class MoveVideo:
                         self.logger.log(f"Skipping non-video file: {source_file}")
                         continue
 
-                    destination_file = os.path.join(str(Path(destination_dir[0])), os.path.basename(source_file))
+                    destination_file = os.path.join(str(Path(destination_dir[0])), source_file.name)
                     shutil.move(str(Path(source_file)), destination_file)
                     self.logger.log(f"Moved {source_file} to {destination_file}")
                 except Exception as e:
@@ -222,26 +209,24 @@ class MoveVideo:
             processed_count += 1
             self.logger.log(f"Processed {processed_count}/{total_keys} keys")
 
-        self.logger.log_end(f"Moving files from {DIR_IN} to {dir_out}")
+        self.logger.log_end(f"Moving files from {self.dir_in} to {dir_out}")
 
         sys.stdout.flush()
 
-    def get_subdirectories_with_prefix(self, directory, prefix):
+    @staticmethod
+    def get_subdirectories_with_prefix(directory):
         subdirectories = []
         with os.scandir(directory) as entries:
             for entry in entries:
-                if entry.is_dir() and entry.name.startswith(prefix):
+                if entry.is_dir():
                     subdirectories.append(entry.path)
         return subdirectories
 
     def main(self):
         self.logger.log("Version: " + str(VERSION))
 
-        output_dirs = self.get_subdirectories_with_prefix(DIR_OUT_ROOT, DIR_OUT_LABEL)
-        for output_dir in output_dirs:
-            self.move_files(output_dir)
-        self.delete_small_directories(DIR_IN)
-
+        self.move_files(self.dir_out)
+        self.delete_small_directories(self.dir_in)
 
 if __name__ == '__main__':
     move_video = MoveVideo()
