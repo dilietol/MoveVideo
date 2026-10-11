@@ -1,37 +1,10 @@
 import json
 import os
-import time
 
 import qbittorrentapi
 from qbittorrentapi import Client
 import configparser
-import logging
-
-logger = logging.getLogger("QBitTorrentClient")
-logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-# ch.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s %(name)s %(message)s")
-formatter.converter = time.localtime
-ch.setFormatter(formatter)
-logger.addHandler(ch)
-
-
-def log(msg):
-    logger.info(msg)
-
-
-def debug(msg):
-    logger.debug(msg)
-
-
-def log_end(title):
-    log("********************** %s END **********************" % title)
-
-
-def log_start(title):
-    log("********************** %s START **********************" % title)
-
+from Log import Logger
 
 class QBitTorrentClient:
     conf: configparser.ConfigParser
@@ -39,6 +12,7 @@ class QBitTorrentClient:
 
     def __init__(self):
         self.initialize()
+        self.logger = Logger("QBitTorrentClient")
 
     def get_active_torrents(self):
         torrents = ()
@@ -58,7 +32,7 @@ class QBitTorrentClient:
                 counters[parameter] += 1
             else:
                 counters[parameter] = 1
-        log("counters for not valid duplicates: " + json.dumps(counters))
+        self.logger.log("counters for not valid duplicates: " + json.dumps(counters))
 
     def get_completed_and_moved_torrents(self):
         torrents = ()
@@ -75,20 +49,20 @@ class QBitTorrentClient:
         return completed_torrents
 
     def main(self):
-        log_start("Main")
+        self.logger.log_start("Main")
         self.client.auth_log_in()
         self.log_torrents_report()
         for torrent in self.get_active_torrents():
-            log(f"{torrent.hash}: {torrent.name} ({torrent.state})")
+            self.logger.log(f"{torrent.hash}: {torrent.name} ({torrent.state})")
         torrents = self.get_completed_and_moved_torrents()
         for torrent in torrents:
-            log(f"{torrent.hash}: {torrent.name} ({torrent.state})")
+            self.logger.log(f"{torrent.hash}: {torrent.name} ({torrent.state})")
         for torrent in torrents:
             self.client.torrents_delete(delete_files=False, torrent_hashes=[torrent.hash])
-            log("Deleted torrent with name " + torrent.name)
+            self.logger.log("Deleted torrent with name " + torrent.name)
         self.client.auth_log_out()
 
-        log_end("Main")
+        self.logger.log_end("Main")
 
     def parse_config(self):
         self.conf = configparser.ConfigParser()
@@ -107,17 +81,17 @@ class QBitTorrentClient:
         self.client = qbittorrentapi.Client(**args)
         try:
             self.client.auth_log_in()
-            log_start("Config")
-            log(f"qBittorrent: {self.client.app.version}")
-            log(f"qBittorrent Web API: {self.client.app.web_api_version}")
+            self.logger.log_start("Config")
+            self.logger.log(f"qBittorrent: {self.client.app.version}")
+            self.logger.log(f"qBittorrent Web API: {self.client.app.web_api_version}")
             for k, v in self.client.app.build_info.items():
-                log(f"{k}: {v}")
-            log_end("Config")
+                self.logger.log(f"{k}: {v}")
+            self.logger.log_end("Config")
             self.client.auth_log_out()
         except qbittorrentapi.LoginFailed as e:
-            log(e)
+            self.logger.log(e)
         except Exception as e:
-            log(e)
+            self.logger.log(e)
 
 
 if __name__ == '__main__':
