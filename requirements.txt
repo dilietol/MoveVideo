@@ -6,3 +6,5 @@ Flask~=3.1.0
 stashapi == 0.1.5
 qbittorrent-api==2025.11.1
 jsonpath-ng==1.7.0
+toml==0.10.2
+pex==0.20.1
