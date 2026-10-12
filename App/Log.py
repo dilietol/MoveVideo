@@ -22,6 +22,9 @@ class Logger:
     def debug(self, msg):
         self.logger.debug(msg)
 
+    def error(self, msg):
+        self.logger.error(msg)
+
     def log_block(self, msg, title):
         self.log_start(title)
         if isinstance(msg, list):
@@ -38,8 +41,8 @@ class Logger:
         self.logger.info(msg_formatted)
         self.log_end(title)
 
-    def log_end(self, title):
+    def log_end(self, title: str) -> None:
         self.log("********************** %s END **********************" % title)
 
-    def log_start(self, title):
+    def log_start(self, title: str) -> None:
         self.log("********************** %s START **********************" % title)
