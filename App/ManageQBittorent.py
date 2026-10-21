@@ -26,20 +26,29 @@ class QBitTorrentClient:
             self.logger.error(f"Error fetching active torrents: {e}")
             return []  # Return empty list on error instead of crashing
 
-    def log_torrents_report(self, torrents=None):
+    def log_torrents_report(self, torrents):
+        self.logger.log_start("Torrents Report")
         if torrents is None:
             torrents = []
-            if self.client.is_logged_in:
-                torrents = self.client.torrents_info()
+        self.logger.log("Torrents Number : " + str(len(torrents)))
         
         counters = {}
+        category_counts = {}
         for torrent in torrents:
             parameter = torrent.state
             if parameter in counters:
                 counters[parameter] += 1
             else:
                 counters[parameter] = 1
-        self.logger.log("counters for not valid duplicates: " + json.dumps(counters))
+            category = torrent.category if torrent.category else "Uncategorized"
+            if category not in category_counts:
+                category_counts[category] = 0
+            category_counts[category] += 1
+        self.logger.log("Torrents state counters: " + json.dumps(counters))
+        self.logger.log("Torrents category counters: " + json.dumps(category_counts))
+        self.logger.log_end("Torrents Report")
+
+
 
     def get_completed_and_moved_torrents(self):
         torrents = []
@@ -63,9 +72,15 @@ class QBitTorrentClient:
         self.logger.log_start("Main")
         try:
             self.client.auth_log_in()
-            # Single API call to fetch all torrents
-            all_torrents = self.client.torrents_info() if self.client.is_logged_in else []
             
+            if not self.client.is_logged_in:
+                self.logger.error("Failed to log in to qbittorrent")
+                raise Exception("Login failed: not authenticated")
+            
+            self.logger.log("Logged in to qbittorrent")
+            # Single API call to fetch all torrents
+            all_torrents= self.client.torrents_info()
+
             self.log_torrents_report(all_torrents)
             active_torrents = [torrent for torrent in all_torrents if torrent['state'] == 'downloading']
             for torrent in active_torrents:
@@ -93,6 +108,7 @@ class QBitTorrentClient:
         finally:
             try:
                 self.client.auth_log_out()
+                self.logger.log_end("Main")
             except Exception as e:
                 self.logger.error(f"Logout failed: {e}")
 
@@ -110,6 +126,7 @@ class QBitTorrentClient:
             raise
 
     def initialize(self):
+        self.logger.log_start(" Starting ManageQBittorent ")
         self.parse_config()
         # Set up client with proper validation
         try:
@@ -135,12 +152,12 @@ class QBitTorrentClient:
         self.client = qbittorrentapi.Client(**args)
         try:
             self.client.auth_log_in()
-            self.logger.log_start("Config")
+            self.logger.log_start(" qBittorrent server configuration ")
             self.logger.log(f"qBittorrent: {self.client.app.version}")
             self.logger.log(f"qBittorrent Web API: {self.client.app.web_api_version}")
             for k, v in self.client.app.build_info.items():
                 self.logger.log(f"{k}: {v}")
-            self.logger.log_end("Config")
+            self.logger.log_end(" qBittorrent server configuration ")
             self.client.auth_log_out()
         except qbittorrentapi.LoginFailed as e:
             self.logger.error(f"Login failed: {e}")
