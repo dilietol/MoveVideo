@@ -1,7 +1,9 @@
+import logging
 import time
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Dict, Any, Collection
 
+from requests.exceptions import ConnectionError, Timeout
 from stashapi.stashapp import StashInterface
 
 from FindBestFile import FileSlim, DuplicatedFiles
@@ -13,7 +15,7 @@ class StashBox:
     name: str
     tag_name: str
     tag_id: int
-    url: str = None
+    url: str|None = None
 
 
 @dataclass
@@ -46,12 +48,14 @@ class SceneFilter:
 
 @dataclass
 class Fingerprints:
-    json: str
+    json: Dict[str, Any]|None
     algorithm: str = field(init=False)
     hash: str = field(init=False)
     duration: int = field(init=False)
 
     def __post_init__(self) -> None:
+        if self.json is None:
+            return
         self.algorithm = self.json["algorithm"]
         self.hash = self.json["hash"]
         self.duration = self.json["duration"]
@@ -60,15 +64,17 @@ class Fingerprints:
 
 @dataclass
 class Studio:
-    json: str
-    stored_id: str = field(init=False)
+    json: Dict[str, Any]|None
+    stored_id: str|None = field(init=False)
     name: str = field(init=False)
     urls: List[str] = field(init=False)
-    parent: str = field(init=False)
+    parent: Dict[str, Any]|None = field(init=False)
     image: str = field(init=False)
     remote_site_id: str = field(init=False)
 
     def __post_init__(self) -> None:
+        if self.json is None:
+            return
         self.stored_id = self.json["stored_id"]
         self.name = self.json["name"]
         self.urls = self.json["urls"]
@@ -80,8 +86,8 @@ class Studio:
 
 @dataclass
 class Performer:
-    json: str
-    stored_id: str = field(init=False)
+    json: Dict[str, Any]|None
+    stored_id: str|None = field(init=False)
     name: str = field(init=False)
     disambiguation: str = field(init=False)
     gender: str = field(init=False)
@@ -107,6 +113,8 @@ class Performer:
     remote_site_id: str = field(init=False)
 
     def __post_init__(self) -> None:
+        if self.json is None:
+            return
         self.stored_id = self.json["stored_id"]
         self.name = self.json["name"]
         self.disambiguation = self.json["disambiguation"]
@@ -136,7 +144,7 @@ class Performer:
 
 @dataclass
 class Match:
-    json: str
+    json: Dict[str, Any]|None
     title: str = field(init=False)
     code: str = field(init=False)
     details: str = field(init=False)
@@ -152,6 +160,8 @@ class Match:
     fingerprints: List[Fingerprints] = field(init=False)
 
     def __post_init__(self) -> None:
+        if self.json is None:
+            return
         self.title = self.json["title"]
         self.code = self.json["code"]
         self.details = self.json["details"]
@@ -200,7 +210,7 @@ class MatchEvaluation:
             self.phashes_matches_number) + "/" + str(self.same_date) + ")"
 
 
-def duration_match(match: Match, duration: float) -> (int, int):
+def duration_match(match: Match, duration: float) -> tuple[int, int]:
     # Calc the number of match duration (total) and number of match duration equal to file duration (number)
     return len(match.fingerprints), sum(
         1 for x in match.fingerprints if
@@ -210,7 +220,7 @@ def duration_match(match: Match, duration: float) -> (int, int):
         or ((abs(x.duration - duration)) * 1000 / max(duration, x.duration)) < 3)
 
 
-def phashes_match(match: Match, phash: str) -> (int, int):
+def phashes_match(match: Match, phash: str | None) -> tuple[int, int]:
     # Calc the number of exact phase match and number of similar phashes match
     # The calculation is made only on PHASH fingerprints
     phashes = [y for y in match.fingerprints if y.algorithm == "PHASH"]
@@ -231,10 +241,9 @@ def is_same_date(match: Match, filename: str) -> bool:
 
 
 def is_match(match: Match, filename: str, duration_matches_total: int, duration_matches_number: int,
-             phashes_matches_exact: int, phashes_matches_number: int) -> (bool, str):
+             phashes_matches_exact: int, phashes_matches_number: int) -> tuple[bool, str]:
     # TODO: add a more cases to match; currently only simple matches are managed
     result: bool = False
-    same_date: bool = False
     if phashes_matches_exact > 0 and (
             (duration_matches_number == duration_matches_total and duration_matches_number >= 3)
             or duration_matches_number >= 10):
@@ -258,7 +267,7 @@ def is_match(match: Match, filename: str, duration_matches_total: int, duration_
 
 @dataclass
 class Scrape:
-    s: StashInterface
+    s: StashInterface|None
     scene: Scene
     stashbox: StashBox
     matches: List[Match] = field(init=False)
@@ -269,6 +278,8 @@ class Scrape:
     match_object: Match = field(init=False)
 
     def __post_init__(self) -> None:
+        if self.s is None:
+            raise ValueError("StashInterface is not initialized")
         self.matches = find_matches(self.s, self.scene, self.stashbox)
         if len(self.scene.files) == 1 and self.matches is not None:
             self.evaluations = [MatchEvaluation(x, self.scene) for x in self.matches]
@@ -327,18 +338,25 @@ def find_matches(s: StashInterface, scene: Scene, stashbox: StashBox) -> List[Ma
     Returns:
         List[Match]: A list of matches found for the scene and stashbox.
     """
-    data = None
+    data: Collection[Dict[str, Any]]|None = None
     result: List[Match] = list()
+    logger = logging.getLogger(__name__)
 
     # Try scraping the scene data up to 3 times
-    for _ in range(3):
+    for attempt in range(3):
         try:
             data = s.scrape_scene({"stash_box_endpoint": stashbox.url}, {"scene_id": scene.id})
             break
+        except (ConnectionError, Timeout) as e:
+            logger.warning("Failed to scrape scene %s from %s (attempt %d/3): %s" % (scene.id, stashbox.name, attempt + 1, str(e)))
+            if attempt < 2:
+                time.sleep(4)
+            else:
+                logger.warning("Max retries reached for scene %s from %s" % (scene.id, stashbox.name))
         except Exception as e:
-            print(f"Received a GraphQL exception : {e}")
-            time.sleep(4)
-            data = None
+            logger.error("Non-recoverable error scraping scene %s from %s: %s" % (scene.id, stashbox.name, str(e)))
+            logger.debug("Exception details:", exc_info=True)
+            break
 
     if data is not None:
         # Process the scraped data and create Match objects

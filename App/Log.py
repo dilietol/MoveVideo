@@ -19,8 +19,8 @@ class Logger:
     def log(self, msg):
         self.logger.info(msg)
 
-    def debug(self, msg):
-        self.logger.debug(msg)
+    def debug(self, msg, exc_info=False):
+        self.logger.debug(msg, exc_info=exc_info)
 
     def error(self, msg):
         self.logger.error(msg)
