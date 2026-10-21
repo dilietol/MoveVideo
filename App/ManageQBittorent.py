@@ -12,7 +12,6 @@ class QBitTorrentClient:
 
     def __init__(self):
         self.conf = None
-        self.defaults_path = None
         self.logger = Logger("QBitTorrentClient")
         self.initialize()
 
@@ -98,12 +97,13 @@ class QBitTorrentClient:
                 self.logger.error(f"Logout failed: {e}")
 
     def parse_config(self):
+        defaults_path = None
         try:
-            self.defaults_path = os.path.join('config', 'config.toml')
-            with open(self.defaults_path, 'r') as f:
+            defaults_path = os.path.join('config', 'config.toml')
+            with open(defaults_path, 'r') as f:
                 self.conf = toml.load(f)
         except FileNotFoundError:
-            self.logger.log(f"Config file not found: {self.defaults_path}")
+            self.logger.log(f"Config file not found: {defaults_path}")
             raise
         except toml.TomlDecodeError as e:
             self.logger.log(f"Invalid TOML in config file: {e}")
