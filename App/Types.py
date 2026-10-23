@@ -11,21 +11,27 @@ from FindBestFile import FileSlim, DuplicatedFiles
 
 @dataclass
 class StashBox:
+    """Represents a stashbox (external metadata source) used for scene matching."""
+
     id: int
     name: str
     tag_name: str
     tag_id: int
-    url: str|None = None
+    url: str | None = None
 
 
 @dataclass
 class Tags:
+    """Represents a tag in Stash."""
+
     id: int
     name: str
 
 
 @dataclass
 class Scene:
+    """Represents a Stash scene with its files and metadata."""
+
     id: int
     organized: bool
     tags: List[Tags]
@@ -39,6 +45,8 @@ class Scene:
 
 @dataclass
 class SceneFilter:
+    """Criteria used to filter scenes for processing."""
+
     organized: bool
     tags_includes: List[str]
     tags_excludes: List[str]
@@ -48,7 +56,9 @@ class SceneFilter:
 
 @dataclass
 class Fingerprints:
-    json: Dict[str, Any]|None
+    """Fingerprint data extracted from a Stash scene JSON payload."""
+
+    json: Dict[str, Any] | None
     algorithm: str = field(init=False)
     hash: str = field(init=False)
     duration: int = field(init=False)
@@ -64,11 +74,13 @@ class Fingerprints:
 
 @dataclass
 class Studio:
-    json: Dict[str, Any]|None
-    stored_id: str|None = field(init=False)
+    """Studio information parsed from a Stash scene JSON payload."""
+
+    json: Dict[str, Any] | None
+    stored_id: str | None = field(init=False)
     name: str = field(init=False)
     urls: List[str] = field(init=False)
-    parent: Dict[str, Any]|None = field(init=False)
+    parent: Dict[str, Any] | None = field(init=False)
     image: str = field(init=False)
     remote_site_id: str = field(init=False)
 
@@ -86,8 +98,10 @@ class Studio:
 
 @dataclass
 class Performer:
-    json: Dict[str, Any]|None
-    stored_id: str|None = field(init=False)
+    """Performer information parsed from a Stash scene JSON payload."""
+
+    json: Dict[str, Any] | None
+    stored_id: str | None = field(init=False)
     name: str = field(init=False)
     disambiguation: str = field(init=False)
     gender: str = field(init=False)
@@ -101,7 +115,6 @@ class Performer:
     fake_tits: str = field(init=False)
     penis_length: str = field(init=False)
     circumcised: str = field(init=False)
-    ##career_length: str = field(init=False)
     tattoos: str = field(init=False)
     piercings: str = field(init=False)
     aliases: str = field(init=False)
@@ -144,7 +157,9 @@ class Performer:
 
 @dataclass
 class Match:
-    json: Dict[str, Any]|None
+    """Match result from a stashbox scrape, parsed from a Stash scene JSON payload."""
+
+    json: Dict[str, Any] | None
     title: str = field(init=False)
     code: str = field(init=False)
     details: str = field(init=False)
@@ -181,9 +196,10 @@ class Match:
 
 @dataclass
 class MatchEvaluation:
+    """Evaluation result comparing a match against a scene file."""
+
     match: Match
     scene: Scene
-    # file: FileSlim
     matched: bool = False  # True if at least one good match
     same_date: bool = False  # True if date match to filename
     duration_matches_total: int = field(init=False)  # number of match duration
