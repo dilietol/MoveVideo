@@ -10,6 +10,7 @@ from stashapi.stash_types import PhashDistance
 from stashapi.stashapp import StashInterface
 from requests.exceptions import ConnectionError, Timeout
 
+from Config import apply_env_overrides
 from Log import Logger
 from Types import StashBox, Tags, Scene, SceneFilter, Scrape
 from FindBestFile import FileSlim, DuplicatedFiles
@@ -45,7 +46,7 @@ class ManageStash:
         try:
             defaults_path = os.path.join('config', 'config.toml')
             with open(defaults_path, 'r') as f:
-                self.conf = toml.load(f)
+                self.conf = apply_env_overrides(toml.load(f))
         except FileNotFoundError:
             self.logger.log(f"Config file not found: {defaults_path}")
             raise
@@ -62,7 +63,7 @@ class ManageStash:
             "host": self.conf["Stash_Host"]["Host"],
             "port": self.conf["Stash_Host"]["Port"]
         }
-        if self.conf["Stash_Host"]["ApiKey"]:
+        if self.conf["Stash_Host"].get("ApiKey"):
             stash_args["ApiKey"] = self.conf["Stash_Host"]["ApiKey"]
         self.stash = StashCli(stash_args)
         self.paths = self.conf["Path"]

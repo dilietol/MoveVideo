@@ -4,6 +4,7 @@ import toml
 
 import qbittorrentapi
 from qbittorrentapi import Client
+from Config import apply_env_overrides
 from Log import Logger
 
 class QBitTorrentClient:
@@ -117,7 +118,7 @@ class QBitTorrentClient:
         try:
             defaults_path = os.path.join('config', 'config.toml')
             with open(defaults_path, 'r') as f:
-                self.conf = toml.load(f)
+                self.conf = apply_env_overrides(toml.load(f))
         except FileNotFoundError:
             self.logger.log(f"Config file not found: {defaults_path}")
             raise
@@ -138,9 +139,11 @@ class QBitTorrentClient:
         args = {
             "host": self.conf["QBittorent_Host"]["Host"],
             "port": port,
-            "username": self.conf["QBittorent_Host"]["username"],
-            "password": self.conf["QBittorent_Host"]["password"]
+            "username": self.conf["QBittorent_Host"].get("username", ""),
+            "password": self.conf["QBittorent_Host"].get("password", "")
         }
+        if not args["password"]:
+            self.logger.log("qBittorrent password is empty: set the QBITTORENT_PASSWORD environment variable")
         
         # Validate required config sections exist
         required_sections = ["QBittorent_Host", "Path"]
