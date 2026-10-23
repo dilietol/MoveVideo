@@ -20,6 +20,16 @@ class StashBox:
     url: str | None = None
 
 
+# Default list of stashboxes used for scene matching.
+# Can be overridden by importing and reassigning this constant in other modules.
+MATCHES_STASHBOX: List[StashBox] = [
+    StashBox(name="stashdb.org", tag_name="MATCH_STASHDB", id=0, tag_id=0),
+    StashBox(name="ThePornDB", tag_name="MATCH_PORNDB", id=0, tag_id=0),
+    StashBox(name="FansDB", tag_name="MATCH_FANSDB", id=0, tag_id=0),
+    StashBox(name="PMV Stash", tag_name="MATCH_PMV", id=0, tag_id=0),
+]
+
+
 @dataclass
 class Tags:
     """Represents a tag in Stash."""

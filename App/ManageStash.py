@@ -12,7 +12,7 @@ from requests.exceptions import ConnectionError, Timeout
 
 from Config import apply_env_overrides
 from Log import Logger
-from Types import StashBox, Tags, Scene, SceneFilter, Scrape
+from Types import StashBox, Tags, Scene, SceneFilter, Scrape, MATCHES_STASHBOX
 from FindBestFile import FileSlim, DuplicatedFiles
 from StashCli import StashCli
 
@@ -23,13 +23,6 @@ MATCHES_UNKNOWN = "UNKNOWN"  # Tag to add to scene when is unknown
 SCENES_MAX = 1000
 MATCHES_SCENES_MAX = 400
 MATCHES_SCENES_FALSE_POSITIVE_MAX = 800
-
-MATCHES_STASHBOX: List[StashBox] = [
-    StashBox(name="stashdb.org", tag_name="MATCH_STASHDB", id=0, tag_id=0),
-    StashBox(name="ThePornDB", tag_name="MATCH_PORNDB", id=0, tag_id=0),
-    StashBox(name="FansDB", tag_name="MATCH_FANSDB", id=0, tag_id=0),
-    StashBox(name="PMV Stash", tag_name="MATCH_PMV", id=0, tag_id=0)
-]
 
 
 class ManageStash:

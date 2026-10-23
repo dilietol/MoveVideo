@@ -5,7 +5,7 @@ from requests.exceptions import ConnectionError, Timeout
 from stashapi.stashapp import StashInterface
 from stashapi.stash_types import PhashDistance
 from Log import Logger
-from Types import Tags, Scene, SceneFilter, StashBox, DuplicatedFiles, Scrape, Studio, Match, Performer
+from Types import Tags, Scene, SceneFilter, StashBox, DuplicatedFiles, Scrape, Studio, Match, Performer, MATCHES_STASHBOX
 from FindBestFile import FileSlim
 
 # Configuration constants used while paging through Stash scenes.
@@ -15,12 +15,7 @@ MATCHES_SCENES_FALSE_POSITIVE_MAX = 800
 MATCHES_SCENES_START_PAGE = 1
 MATCHES_SCENES_INTERNAL_PAGE = 50
 LOG_INTERVAL = 10
-MATCHES_STASHBOX: List[StashBox] = [
-    StashBox(name="stashdb.org", tag_name="MATCH_STASHDB", id=0, tag_id=0),
-    StashBox(name="ThePornDB", tag_name="MATCH_PORNDB", id=0, tag_id=0),
-    StashBox(name="FansDB", tag_name="MATCH_FANSDB", id=0, tag_id=0),
-    StashBox(name="PMV Stash", tag_name="MATCH_PMV", id=0, tag_id=0)
-]
+
 
 class StashCli:
     """Small wrapper around the Stash API used to query and mutate scene data."""
