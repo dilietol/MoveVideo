@@ -152,13 +152,9 @@ class MoveVideo:
     @staticmethod
     def is_video_file(file_path):
         """Verify if the file is actually a video file"""
-        try:
-            # Extract extension
-            _, ext = os.path.splitext(file_path)
-            video_extensions = ['.mkv', '.avi', '.mp4', '.wmv', '.mov', '.flv']
-            return ext.lower() in video_extensions
-        except Exception:
-            return False
+        _, ext = os.path.splitext(file_path)
+        video_extensions = ['.mkv', '.avi', '.mp4', '.wmv', '.mov', '.flv']
+        return ext.lower() in video_extensions
 
     def move_files(self, dir_out):
         self.logger.log_start(f"Moving files from {self.dir_in} to {dir_out}")
@@ -217,7 +213,7 @@ class MoveVideo:
                     destination_file = os.path.join(str(Path(destination_dir[0])), source_file.name)
                     shutil.move(str(Path(source_file)), destination_file)
                     self.logger.log(f"Moved {source_file} to {destination_file}")
-                except Exception as e:
+                except (OSError, shutil.Error) as e:
                     self.logger.log(f"Error moving {source_file}: {str(e)}")
 
             processed_count += 1
