@@ -14,7 +14,8 @@ class Logger:
 
         self.logger = logging.getLogger(namespace)
         self.logger.setLevel(logging.DEBUG)
-        self.logger.addHandler(self.ch)
+        if not self.logger.handlers:
+            self.logger.addHandler(self.ch)
 
     def log(self, msg):
         self.logger.info(msg)
