@@ -143,7 +143,7 @@ class App:
 
 def parse_config():
     conf = configparser.ConfigParser()
-    defaults_path = os.path.join('config', 'config.toml')
+    defaults_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config', 'config.toml')
     conf.read(defaults_path)
     return conf
 

@@ -44,7 +44,7 @@ class ManageStash:
     def parse_config(self):
         defaults_path = None
         try:
-            defaults_path = os.path.join('config', 'config.toml')
+            defaults_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config', 'config.toml')
             with open(defaults_path, 'r') as f:
                 self.conf = apply_env_overrides(toml.load(f))
         except FileNotFoundError:
