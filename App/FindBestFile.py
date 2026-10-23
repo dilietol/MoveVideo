@@ -1,6 +1,5 @@
 import os
 from dataclasses import dataclass, field
-from idlelib.run import idle_formatwarning
 from typing import Any, List
 
 
@@ -12,7 +11,7 @@ class FileSlim:
     organized: bool
     width: int
     height: int
-    video_codec: float
+    video_codec: str
     size: int
     duration: float
     basename: str
@@ -225,7 +224,7 @@ def filter_by_size(files_dict: List[FileSlim]) -> List[FileSlim]:
     return matching_elements
 
 
-def select_by_codec(files_dict) -> List[FileSlim]:
+def select_by_codec(files_dict: List[FileSlim]) -> List[FileSlim]:
     matching_elements_henvc: list[Any] = [elem for elem in files_dict if elem.video_codec == "hevc"]
     if len(matching_elements_henvc) >= 1:
         return matching_elements_henvc
@@ -254,7 +253,7 @@ def select_by_size(files_dict: List[FileSlim]) -> List[FileSlim]:
     return result
 
 
-def files_to_delete(files_dict: list[FileSlim], best_scene_id: int, best_file_id: int):
+def files_to_delete(files_dict: list[FileSlim], best_scene_id: int, best_file_id: int) -> tuple[list[int], list[int], float]:
     return (list(filter(lambda x: x != best_scene_id, [elem.id for elem in files_dict])),
             list(filter(lambda x: x != best_file_id, [elem.id_file for elem in files_dict])),
             round(
@@ -262,7 +261,7 @@ def files_to_delete(files_dict: list[FileSlim], best_scene_id: int, best_file_id
                       elem.id_file != best_file_id]) / 1024 / 1024 / 1024), 2))
 
 
-def select_among_equal_organized(organized_one: List [FileSlim]):
+def select_among_equal_organized(organized_one: List[FileSlim]) -> tuple[int, int]:
     id = organized_one[0].id
     id_file = organized_one[0].id_file
 
