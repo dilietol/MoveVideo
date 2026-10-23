@@ -12,7 +12,7 @@ from requests.exceptions import ConnectionError, Timeout
 
 from Config import apply_env_overrides
 from Log import Logger
-from Types import StashBox, Tags, Scene, SceneFilter, Scrape, MATCHES_STASHBOX
+from Types import StashBox, Tags, Scene, SceneFilter, Scrape
 from FindBestFile import FileSlim, DuplicatedFiles
 from StashCli import StashCli
 
