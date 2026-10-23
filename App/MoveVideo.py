@@ -36,6 +36,9 @@ class MoveVideoConfig:
             raise PermissionError(f"No write permission for output directory {self.out_dir}")
 
 class MoveVideo:
+    SourceItem = namedtuple("SourceItem", ["File", "Path", "Key"])
+    DestItem = namedtuple("DestItem", ["Dir", "Path", "Key"])
+
     def __init__(self):
         self.logger = Logger("MoveVideo")
         self.config = MoveVideoConfig()
@@ -43,7 +46,7 @@ class MoveVideo:
         self.dir_out = self.config.out_dir
         self.min_dir_size = self.config.min_dir_size
 
-    def get_directory_size(self, directory_path):
+    def get_directory_size(self, directory_path: str) -> int:
         total_size = 0
         with os.scandir(directory_path) as it:
             for entry in it:
@@ -53,26 +56,38 @@ class MoveVideo:
                     total_size += self.get_directory_size(entry.path)
         return total_size
 
-    def delete_small_directories(self, directory_path):
+    def delete_small_directories(self, directory_path: str) -> None:
         self.logger.log_start(f"Deleting small directories in {directory_path}")
+        # Collect directories to delete first, then remove them after os.walk completes
+        # to avoid modifying the tree while iterating over it.
+        dirs_to_delete: list[tuple[str, int]] = []
         for root, dirs, files in os.walk(directory_path):
             for dir_name in dirs:
                 dir_path = os.path.join(str(root), str(dir_name))
-                size = self.get_directory_size(dir_path)
+                try:
+                    size = self.get_directory_size(dir_path)
+                except OSError as e:
+                    self.logger.log(f"Cannot compute size for {dir_path}: {e}")
+                    continue
                 self.logger.log(f"Size {dir_path} is {size} bytes")
                 if size < self.min_dir_size:
-                    for file_name in os.listdir(dir_path):
-                        file_path = os.path.join(dir_path, file_name)
-                        if os.path.isfile(file_path):
-                            os.remove(file_path)
-                            self.logger.log(f"Deleting {file_path}")
-                    self.logger.log(f"Deleting {dir_path} with size {size} bytes")
-                    os.rmdir(dir_path)
+                    dirs_to_delete.append((dir_path, size))
+
+        for dir_path, size in dirs_to_delete:
+            try:
+                for file_name in os.listdir(dir_path):
+                    file_path = os.path.join(dir_path, file_name)
+                    if os.path.isfile(file_path):
+                        os.remove(file_path)
+                        self.logger.log(f"Deleting {file_path}")
+                self.logger.log(f"Deleting {dir_path} with size {size} bytes")
+                os.rmdir(dir_path)
+            except OSError as e:
+                self.logger.log(f"Error deleting {dir_path}: {e}")
         self.logger.log_end(f"Deleting small directories in {directory_path}")
 
     def generate_source_list(self):
-        Item = namedtuple("Item", ["File", "Path", "Key"])
-        item_list: List[Item] = list()
+        item_list: list = []
 
         # Search for all video files recursively within the DIR_IN directory
         # and save the file name, full path and file key in the list of "Item" objects
@@ -80,13 +95,12 @@ class MoveVideo:
         for ext in video_extensions:
             for txt_file in Path(self.dir_in).rglob(ext):
                 key: str = self.extract_key_from_filename(txt_file.name)
-                item_list.append(Item(txt_file.name, txt_file, key.lower()))
+                item_list.append(self.SourceItem(txt_file.name, txt_file, key.lower()))
         return item_list
 
     @staticmethod
     def generate_destination_list(dir_out):
-        Item = namedtuple("Item", ["Dir", "Path", "Key"])
-        item_list: List[Item] = list()
+        item_list: list = []
         p = Path(dir_out)
 
         # Search for all directories or symlinks present in the DIR_OUT directory.
@@ -97,12 +111,12 @@ class MoveVideo:
             for key in keys:
                 if key.startswith("_"):
                     # Remove underscore for directories with multi group (starting with underscore)
-                    item_list.append(Item(txt_file.name, txt_file, key[1:]))
+                    item_list.append(MoveVideo.DestItem(txt_file.name, txt_file, key[1:]))
                 else:
-                    item_list.append(Item(txt_file.name, txt_file.resolve(), key))
+                    item_list.append(MoveVideo.DestItem(txt_file.name, txt_file.resolve(), key))
                     if key.endswith("N"):
                         # Calculate also key for collection based on N (ending with N)
-                        item_list.append(Item(txt_file.name, txt_file.resolve(), key[:-1]))
+                        item_list.append(MoveVideo.DestItem(txt_file.name, txt_file.resolve(), key[:-1]))
         return item_list
 
     @staticmethod
