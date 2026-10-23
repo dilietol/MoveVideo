@@ -3,7 +3,6 @@ import shutil
 import sys
 from collections import namedtuple
 from pathlib import Path
-from typing import List
 
 from Log import Logger
 
