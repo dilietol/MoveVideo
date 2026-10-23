@@ -10,11 +10,11 @@ from stashapi.stash_types import PhashDistance
 from stashapi.stashapp import StashInterface
 from requests.exceptions import ConnectionError, Timeout
 
-from Config import apply_env_overrides
-from Log import Logger
-from Types import StashBox, Tags, Scene, SceneFilter, Scrape
-from FindBestFile import FileSlim, DuplicatedFiles
-from StashCli import StashCli
+from App.Config import apply_env_overrides
+from App.Log import Logger
+from App.Types import StashBox, Tags, Scene, SceneFilter, Scrape
+from App.FindBestFile import FileSlim, DuplicatedFiles
+from App.StashCli import StashCli
 
 MATCHES_FALSE_POSITIVE = "MATCH_FALSE"  # Tag to add to scene when is not a match
 MATCHES_FILTERED = ""  # Tag to use to filter scenes to process

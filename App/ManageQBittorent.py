@@ -4,8 +4,8 @@ import toml
 
 import qbittorrentapi
 from qbittorrentapi import Client
-from Config import apply_env_overrides
-from Log import Logger
+from App.Config import apply_env_overrides
+from App.Log import Logger
 
 class QBitTorrentClient:
     client: Client

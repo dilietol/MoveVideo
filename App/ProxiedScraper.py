@@ -11,7 +11,7 @@ import re
 from dataclasses import dataclass
 from typing import List
 
-from Log import Logger
+from App.Log import Logger
 
 
 @dataclass

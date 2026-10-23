@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Collection
 from requests.exceptions import ConnectionError, Timeout
 from stashapi.stashapp import StashInterface
 
-from FindBestFile import FileSlim, DuplicatedFiles
+from App.FindBestFile import FileSlim, DuplicatedFiles
 
 
 @dataclass

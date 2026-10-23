@@ -4,9 +4,9 @@ from typing import Any, List
 from requests.exceptions import ConnectionError, Timeout
 from stashapi.stashapp import StashInterface
 from stashapi.stash_types import PhashDistance
-from Log import Logger
-from Types import Tags, Scene, SceneFilter, StashBox, DuplicatedFiles, Scrape, Studio, Match, Performer, MATCHES_STASHBOX
-from FindBestFile import FileSlim
+from App.Log import Logger
+from App.Types import Tags, Scene, SceneFilter, StashBox, DuplicatedFiles, Scrape, Studio, Match, Performer, MATCHES_STASHBOX
+from App.FindBestFile import FileSlim
 
 # Configuration constants used while paging through Stash scenes.
 MATCHES_SCENES_MAX = 400

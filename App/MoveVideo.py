@@ -4,7 +4,7 @@ import sys
 from collections import namedtuple
 from pathlib import Path
 
-from Log import Logger
+from App.Log import Logger
 
 VERSION = "0.1"
 
