@@ -262,8 +262,8 @@ def files_to_delete(files_dict: list[FileSlim], best_scene_id: int, best_file_id
 
 
 def select_among_equal_organized(organized_one: List[FileSlim]) -> tuple[int, int]:
-    id = organized_one[0].id
-    id_file = organized_one[0].id_file
+    best_id = organized_one[0].id
+    best_id_file = organized_one[0].id_file
 
     # Unselect files with "None" name
     candidates1: List[FileSlim] = []
@@ -271,8 +271,8 @@ def select_among_equal_organized(organized_one: List[FileSlim]) -> tuple[int, in
         if not elem.basename.startswith("None"):
             candidates1.append(elem)
     if len(candidates1) == 1:
-        id = candidates1[0].id
-        id_file = candidates1[0].id_file
+        best_id = candidates1[0].id
+        best_id_file = candidates1[0].id_file
     elif len(candidates1) > 1:
         # Unselect files with suffix "_1"
         min_elem = min(candidates1, key=lambda x: len(x.basename))
@@ -280,6 +280,6 @@ def select_among_equal_organized(organized_one: List[FileSlim]) -> tuple[int, in
         if min_value > 20:
             nomebase = os.path.splitext(min_elem.basename)[0]
             if all(elem.basename.startswith(f"{nomebase}") for elem in candidates1):
-                id = min_elem.id
-                id_file = min_elem.id_file
-    return id, id_file
+                best_id = min_elem.id
+                best_id_file = min_elem.id_file
+    return best_id, best_id_file
