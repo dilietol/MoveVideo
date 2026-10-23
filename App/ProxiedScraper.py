@@ -1,8 +1,8 @@
-import configparser
 import os
 import time
 
 import requests
+import toml
 from bs4 import BeautifulSoup
 import feedgenerator
 from flask import Flask
@@ -10,6 +10,8 @@ import schedule
 import re
 from dataclasses import dataclass
 from typing import List
+
+from Log import Logger
 
 
 @dataclass
@@ -34,6 +36,7 @@ class Scraper:
         self.url = url
         self.column_magnet_link = column_magnet_link
         self.column_description = column_description
+        self.logger = Logger("Scraper")
 
     def scrape(self) -> List[MagnetLink]:
         magnet_links = []
@@ -50,11 +53,11 @@ class Scraper:
                 response.raise_for_status()  # Solleva un'eccezione per errori HTTP
                 break  # Esce dal ciclo se l'operazione ha successo
             except requests.RequestException as e:
-                print(f"Tentativo {attempt + 1} fallito: {e}")
+                self.logger.error(f"Tentativo {attempt + 1} fallito: {e}")
                 if attempt < 10 - 1:
                     time.sleep(3)  # Aspetta prima di ritentare
                 else:
-                    print("Numero massimo di tentativi raggiunto. Operazione fallita.")
+                    self.logger.error("Numero massimo di tentativi raggiunto. Operazione fallita.")
                     raise  # Rilancia l'eccezione se tutti i tentativi falliscono
         soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -74,7 +77,7 @@ class Scraper:
                         ))
         else:
             # Handle the case where the 'tbody' element is not found
-            print("Error: Could not find 'tbody' element in the HTML")
+            self.logger.error("Error: Could not find 'tbody' element in the HTML")
         return magnet_links
 
 
@@ -142,9 +145,9 @@ class App:
 
 
 def parse_config():
-    conf = configparser.ConfigParser()
     defaults_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config', 'config.toml')
-    conf.read(defaults_path)
+    with open(defaults_path, 'r', encoding='utf-8') as f:
+        conf = toml.load(f)
     return conf
 
 
