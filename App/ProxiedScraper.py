@@ -47,6 +47,7 @@ class Scraper:
             "accept-language"] = "en-US,en;q=0.9,it-IT;q=0.8,it;q=0.7,es-ES;q=0.6,es;q=0.5,pt-BR;q=0.4,pt;q=0.3"
         session.headers[
             "user-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0"
+        response = None
         for attempt in range(10):
             try:
                 response = session.get(self.url)
@@ -59,6 +60,8 @@ class Scraper:
                 else:
                     self.logger.error("Numero massimo di tentativi raggiunto. Operazione fallita.")
                     raise  # Rilancia l'eccezione se tutti i tentativi falliscono
+        if response is None:
+            return []
         soup = BeautifulSoup(response.text, 'html.parser')
 
         # FInd the root path
@@ -72,8 +75,8 @@ class Scraper:
                     link = cells[self.column_magnet_link].find('a', href=re.compile(r'^magnet:'))
                     if link:
                         magnet_links.append(MagnetLink(
-                            url=link['href'],
-                            description=cells[self.column_description].get_text(strip=True)
+                            url=str(link['href']),
+                            description=str(cells[self.column_description].get_text(strip=True))
                         ))
         else:
             # Handle the case where the 'tbody' element is not found
