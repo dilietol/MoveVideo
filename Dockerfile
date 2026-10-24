@@ -8,6 +8,7 @@ RUN apt-get update && \
 
 # Imposta la directory di lavoro
 WORKDIR /App
+ENV PYTHONPATH=/App
 
 # Copia i file necessari
 COPY requirements.txt requirements.txt
