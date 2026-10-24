@@ -8,12 +8,14 @@ RUN apt-get update && \
 
 # Imposta la directory di lavoro
 WORKDIR /App
-ENV PYTHONPATH=/App
 
 # Copia i file necessari
 COPY requirements.txt requirements.txt
 RUN pip3 install --no-cache-dir -r requirements.txt
-COPY App/*.py .
+COPY App/*.py App/
+COPY App/MoveVideo.py .
+COPY App/ManageQBittorent.py .
+COPY App/ManageStash.py .
 COPY App/config/config.toml config/config.toml
 
 # Configurazione dei cron job
