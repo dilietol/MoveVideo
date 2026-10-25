@@ -30,15 +30,6 @@ Column_title = 1
 Link_number = 1
 Port = 55101
 
-[ProxiedScaper]
-Title="Sexy-pics.us Proxy"
-Url = "https://www.sexy-pics.us/browse/1080p/"
-Interval = 120
-Column_magnet = 0
-Column_title = 1
-Link_number = 10
-Port = 55101
-
 [Path]
 # Path to trash folder
 Trash = "/61.1_series/61.1.9.import/trash"
