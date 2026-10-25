@@ -139,7 +139,7 @@ class ManageStash:
             if scenes_counter % 10 == 0:
                 self.logger.log("Scenes processed: " + str(scenes_counter))
             found = False
-            with concurrent.futures.ThreadPoolExecutor() as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
                 futures = [executor.submit(self.call_stash_api, new_scene, s, scene, stashbox) for stashbox in
                            stashbox_list]
                 for future in concurrent.futures.as_completed(futures):
@@ -214,7 +214,7 @@ class ManageStash:
         stashboxes_to_process = [sb for sb in stashbox_list if sb.tag_name in ["MATCH_STASHDB", "MATCH_PORNDB"]]
         
         # Process stashboxes in parallel
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             # Submit all tasks
             future_to_stashbox = {
                 executor.submit(self.stash.get_scrape_scene, scene_list, stashbox): stashbox

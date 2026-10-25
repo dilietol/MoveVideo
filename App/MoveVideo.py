@@ -210,6 +210,10 @@ class MoveVideo:
                         continue
 
                     destination_file = os.path.join(str(Path(destination_dir[0])), source_file.name)
+                    # Check if destination file already exists to prevent overwrite
+                    if os.path.exists(destination_file):
+                        self.logger.log(f"Skipping move: destination file already exists {destination_file}")
+                        continue
                     shutil.move(str(Path(source_file)), destination_file)
                     self.logger.log(f"Moved {source_file} to {destination_file}")
                 except (OSError, shutil.Error) as e:

@@ -37,7 +37,7 @@ class DuplicatedFiles:
         self.why = "NA"
         self.to_delete = []
         self.to_delete_files = []
-        self.to_delete_size = 0
+        self.to_delete_size = 0.0
         if len(self.files) == 0:
             # Error: No files
             self.id = 0

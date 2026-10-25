@@ -8,8 +8,7 @@ Host = "192.168.1.88"
 #The port number for your stash instance
 Port = 6973
 #The api key, if your stash instance is password protected
-#Better set it with the STASH_API_KEY environment variable (it overrides this value)
-ApiKey = ""
+#Set it with the STASH_API_KEY environment variable (required if Stash is password protected)
 
 [QBittorent_Host]
 #The full hostname for your qbittorrent instance.  If you're running in docker you might want the
@@ -18,11 +17,9 @@ Host = "192.168.1.88"
 #The port number for your qbittorrent instance
 Port = 8080
 #The username, if your stash qbittorrent is password protected
-#Better set it with the QBITTORENT_USERNAME environment variable (it overrides this value)
-username = "admin"
+#Set it with the QBITTORENT_USERNAME environment variable (default: admin)
 #The password, if your stash qbittorrent is password protected
-#DO NOT store the real password here: set the QBITTORENT_PASSWORD environment variable (it overrides this value)
-password = ""
+#Set it with the QBITTORENT_PASSWORD environment variable (required if password protected)
 
 [ProxiedScaperOff]
 Title="Nyaa.si Proxy"
