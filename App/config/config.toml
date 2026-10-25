@@ -21,7 +21,7 @@ Port = 8080
 #The password, if your stash qbittorrent is password protected
 #Set it with the QBITTORENT_PASSWORD environment variable (required if password protected)
 
-[ProxiedScaperOff]
+[ProxiedScaper]
 Title="Nyaa.si Proxy"
 Url = "https://nyaa.si/?p"
 Interval = 30
