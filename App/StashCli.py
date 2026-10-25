@@ -127,7 +127,6 @@ class StashCli:
         return stashbox_list
 
     def create_performer(self, stashbox: StashBox, performer: Performer) -> bool:
-        # TODO: StashCli
         executed = False
         try:
             result = self.stash_interface.create_performer(
@@ -153,7 +152,6 @@ class StashCli:
         return executed
 
     def create_studio(self, stashbox: StashBox, studio: Studio) -> bool:
-        # TODO: StashCli
         executed: bool = False
         try:
             self.stash_interface.create_studio(
@@ -204,7 +202,6 @@ class StashCli:
         return scene_list
 
     def update_scene(self, scrape: Scrape, match: Match|None = None) -> bool:
-        # TODO: StashCli
         executed = False
         if match is None:
             match: Match = scrape.matches[0]
@@ -316,7 +313,6 @@ class StashCli:
 
     def find_scenes_by_tags(self, tags_list: list[Tags], scene_filter: SceneFilter,
                             scenes_number_max) -> list[Scene]:
-        # TODO: StashCli
         # Find scenes
         scene_filter_str = {"organized": scene_filter.organized,
                             "tags":
@@ -373,7 +369,6 @@ class StashCli:
 
     def find_scenes_by_tags_path(self, tags_list: list[Tags], scene_filter: SceneFilter,
                                  scenes_number_max) -> list[Scene]:
-        # TODO: StashCli
         # TODO to fix path because is not working properly
         # Find scenes
         scene_filter_str = {"organized": scene_filter.organized,
@@ -390,7 +385,6 @@ class StashCli:
 
     def get_scrape_scene(self, scene_list: List[Scene], stashbox: StashBox) -> list[Scrape]:
         # Get scrapes for scenes from stashbox
-        # TODO: StashCli
         self.logger.log_start("SCRAPE SCENE for stashbox: " + stashbox.name)
         # log_block(scene_list, "SCENES FOUND")
         i = 0

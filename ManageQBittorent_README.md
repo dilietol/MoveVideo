@@ -1,111 +1,111 @@
-# ManageQBittorrent - Documentazione
+# ManageQBittorrent - Documentation
 
-## Panoramica
+## Overview
 
-`ManageQBittorrent` è un client Python per gestire qBittorrent tramite la sua API Web. Il programma si connette a un'istanza qBittorrent remota, monitora i torrent e pulisce automaticamente quelli completati e spostati.
+`ManageQBittorrent` is a Python client for managing qBittorrent through its Web API. The program connects to a remote qBittorrent instance, monitors torrents, and automatically cleans up completed and moved torrents.
 
-## Funzionalità Principali
+## Main Features
 
-### 1. Connessione a qBittorrent
-- Connessione automatica a un'istanza qBittorrent remota tramite API
-- Autenticazione con username e password
-- Verifica della versione dell'API e del client
-- Gestione degli errori di connessione e autenticazione
+### 1. Connection to qBittorrent
+- Automatic connection to a remote qBittorrent instance via API
+- Authentication with username and password
+- Verification of API and client version
+- Handling of connection and authentication errors
 
-### 2. Monitoraggio dei Torrent
-- **Torrent Attivi**: Recupera e logga tutti i torrent in stato di download (`downloading`)
-- **Report Completo**: Genera un report con il conteggio dei torrent per ogni stato (pausedUP, stalledUP, queuedUP, uploading, stoppedUP, missingFiles, ecc.)
+### 2. Torrent Monitoring
+- **Active Torrents**: Retrieves and logs all torrents in download state (`downloading`)
+- **Full Report**: Generates a report with torrent count for each state (pausedUP, stalledUP, queuedUP, uploading, stoppedUP, missingFiles, etc.)
 
-### 3. Pulizia Automatica
-Il programma identifica e rimuove automaticamente i torrent completati che soddisfano questi criteri:
-- Il percorso dei file **NON** inizia con la cartella `Incomplete`
-- Il percorso dei file **INIZIA** con la cartella `Downloads`
-- Lo stato del torrent è uno dei seguenti:
-  - `pausedUP` - In pausa dopo l'upload
-  - `stalledUP` - Upload in stallo
-  - `queuedUP` - In coda per l'upload
-  - `uploading` - In upload
-  - `stoppedUP` - Fermato dopo l'upload
-  - `missingFiles` - File mancanti
+### 3. Automatic Cleanup
+The program identifies and automatically removes completed torrents that meet these criteria:
+- File path **DOES NOT** start with the `Incomplete` folder
+- File path **STARTS** with the `Downloads` folder
+- Torrent state is one of the following:
+  - `pausedUP` - Paused after upload
+  - `stalledUP` - Upload stalled
+  - `queuedUP` - Queued for upload
+  - `uploading` - Uploading
+  - `stoppedUP` - Stopped after upload
+  - `missingFiles` - Missing files
 
-I torrent vengono rimossi dalla lista qBittorrent ma **i file non vengono eliminati** dal disco.
+Torrents are removed from the qBittorrent list but **files are NOT deleted** from disk.
 
-## Configurazione
+## Configuration
 
-Il programma richiede un file `App/config/config.toml` con le seguenti sezioni:
+The program requires a `App/config/config.toml` file with the following sections:
 
 ### [QBittorent_Host]
-Configurazione della connessione qBittorrent:
-- `Host`: Indirizzo IP o hostname del server qBittorrent
-- `Port`: Porta del server qBittorrent
-- `username`: Nome utente per l'autenticazione
-- `password`: Password per l'autenticazione
+qBittorrent connection configuration:
+- `Host`: IP address or hostname of the qBittorrent server
+- `Port`: Port of the qBittorrent server
+- `username`: Username for authentication
+- `password`: Password for authentication
 
 ### [Path]
-Percorsi per il filtraggio dei torrent:
-- `Incomplete`: Percorso della cartella dei download incompleti
-- `Downloads`: Percorso della cartella dei download completati
+Paths for torrent filtering:
+- `Incomplete`: Path of the incomplete downloads folder
+- `Downloads`: Path of the completed downloads folder
 
-### Esempio di Configurazione
+### Configuration Example
 ```toml
 [QBittorent_Host]
 Host = "192.168.1.88"
 Port = 8080
 username = "admin"
-password = "tua_password"
+password = "your_password"
 
 [Path]
 Incomplete = "/downloads/incomplete"
 Downloads = "/downloads"
 ```
 
-## Metodi della Classe
+## Class Methods
 
 ### `__init__()`
-Inizializza il client, carica la configurazione e stabilisce la connessione a qBittorrent.
+Initializes the client, loads configuration, and establishes connection to qBittorrent.
 
 ### `get_active_torrents()`
-Restituisce la lista dei torrent attualmente in download.
+Returns the list of torrents currently downloading.
 
 ### `log_torrents_report(torrents=None)`
-Genera e logga un report con il conteggio dei torrent per ogni stato.
+Generates and logs a report with torrent count for each state.
 
 ### `get_completed_and_moved_torrents()`
-Restituisce la lista dei torrent completati e spostati che soddisfano i criteri di pulizia.
+Returns the list of completed and moved torrents that meet cleanup criteria.
 
 ### `main()`
-Esegue il flusso principale:
-1. Effettua il login
-2. Recupera tutti i torrent
-3. Logga il report completo
-4. Logga i torrent attivi
-5. Identifica i torrent completati
-6. Rimuove i torrent completati dalla lista
-7. Effettua il logout
+Executes the main flow:
+1. Performs login
+2. Retrieves all torrents
+3. Logs full report
+4. Logs active torrents
+5. Identifies completed torrents
+6. Removes completed torrents from list
+7. Performs logout
 
 ### `parse_config()`
-Carica e valida il file di configurazione TOML.
+Loads and validates the TOML configuration file.
 
 ### `initialize()`
-Configura il client qBittorrent con i parametri dal file di configurazione e verifica la connessione.
+Configures the qBittorrent client with parameters from configuration file and verifies connection.
 
-## Gestione degli Errori
+## Error Handling
 
-Il programma include una gestione robusta degli errori:
-- Errori di connessione e autenticazione
-- File di configurazione mancante o invalido
-- Errori durante il recupero dei torrent
-- Errori durante l'eliminazione dei torrent
-- Tutti gli errori vengono loggati con messaggi descrittivi
+The program includes robust error handling:
+- Connection and authentication errors
+- Missing or invalid configuration file
+- Errors during torrent retrieval
+- Errors during torrent deletion
+- All errors are logged with descriptive messages
 
-## Utilizzo
+## Usage
 
-Eseguire direttamente lo script:
+Run the script directly:
 ```bash
 python ManageQBittorent.py
 ```
 
-Oppure importare e utilizzare la classe in altro codice:
+Or import and use the class in other code:
 ```python
 from ManageQBittorent import QBitTorrentClient
 
@@ -113,9 +113,9 @@ qb_client = QBitTorrentClient()
 qb_client.main()
 ```
 
-## Requisiti
+## Requirements
 
 - Python 3.x
 - qbittorrentapi
 - toml
-- Un'istanza qBittorrent con API Web abilitata
+- A qBittorrent instance with Web API enabled

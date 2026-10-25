@@ -352,7 +352,6 @@ class Scrape:
 
 
 def find_matches(s: StashInterface, scene: Scene, stashbox: StashBox) -> List[Match]:
-    # TODO: StashCli
     """
     Finds matches for a given scene and stashbox by scraping data.
 

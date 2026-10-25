@@ -71,7 +71,6 @@ class ManageStash:
         return
 
     def get_scene_duplicated_files(self, distance: PhashDistance, s: StashInterface) -> list[DuplicatedFiles]:
-        # TODO: StashCli
         self.logger.log("DUPLICATE SCENES FOUND REQUEST")
         data = s.find_duplicate_scenes(distance=distance, fragment='...Scene')
         self.logger.log("DUPLICATE SCENES FOUND RESPONSE")
@@ -520,7 +519,6 @@ class ManageStash:
 
 
 if __name__ == "__main__":
-    # TODO move Shoko integration in an other class
     # TODO fix log timezone
     # TODO add a method to remove tag UNKOWN from all scenes
     # TODO Add management of dimension in compare

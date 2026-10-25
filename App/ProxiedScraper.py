@@ -51,20 +51,20 @@ class Scraper:
         for attempt in range(10):
             try:
                 response = session.get(self.url)
-                response.raise_for_status()  # Solleva un'eccezione per errori HTTP
-                break  # Esce dal ciclo se l'operazione ha successo
+                response.raise_for_status()  # Raise an exception for HTTP errors
+                break  # Exit the loop if the operation succeeds
             except requests.RequestException as e:
-                self.logger.error(f"Tentativo {attempt + 1} fallito: {e}")
+                self.logger.error(f"Attempt {attempt + 1} failed: {e}")
                 if attempt < 10 - 1:
-                    time.sleep(3)  # Aspetta prima di ritentare
+                    time.sleep(3)  # Wait before retrying
                 else:
-                    self.logger.error("Numero massimo di tentativi raggiunto. Operazione fallita.")
-                    raise  # Rilancia l'eccezione se tutti i tentativi falliscono
+                    self.logger.error("Maximum number of attempts reached. Operation failed.")
+                    raise  # Re-raise the exception if all attempts fail
         if response is None:
             return []
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        # FInd the root path
+        # Find the root path
         table = soup.find('tbody')
 
         if table is not None:
