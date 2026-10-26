@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import toml
@@ -69,8 +70,10 @@ class QBitTorrentClient:
             self.logger.error(f"Error fetching completed torrents: {e}")
             return []  # Return empty list on error instead of crashing
 
-    def main(self):
-        self.logger.log_start("Main")
+    def process_completed_torrents(self, dry_run=True):
+        self.logger.log_start("Process Completed Torrents")
+        self.logger.log("Dry run: " + str(dry_run))
+        
         try:
             self.client.auth_log_in()
             
@@ -80,7 +83,7 @@ class QBitTorrentClient:
             
             self.logger.log("Logged in to qbittorrent")
             # Single API call to fetch all torrents
-            all_torrents= self.client.torrents_info()
+            all_torrents = self.client.torrents_info()
 
             self.log_torrents_report(all_torrents)
             active_torrents = [torrent for torrent in all_torrents if torrent['state'] == 'downloading']
@@ -98,20 +101,111 @@ class QBitTorrentClient:
             for torrent in completed_torrents:
                 self.logger.log(f"{torrent.hash}: {torrent.name} ({torrent.state})")
                 
+            self.logger.log("Number of completed torrents to delete: " + str(len(completed_torrents)))
+                
             for torrent in completed_torrents:
-                try:
-                    self.client.torrents_delete(delete_files=False, torrent_hashes=[torrent.hash])
-                    self.logger.log("Deleted torrent with name " + torrent.name)
-                except Exception as e:
-                    self.logger.error(f"Failed to delete torrent {torrent.name}: {e}")
+                if not dry_run:
+                    try:
+                        self.client.torrents_delete(delete_files=False, torrent_hashes=[torrent.hash])
+                        self.logger.log("Deleted torrent with name " + torrent.name)
+                    except Exception as e:
+                        self.logger.error(f"Failed to delete torrent {torrent.name}: {e}")
+                else:
+                    self.logger.log(f"[DRY RUN] Would delete torrent: {torrent.name}")
         except Exception as e:
-            self.logger.error(f"Main execution failed: {e}")
+            self.logger.error(f"Process completed torrents failed: {e}")
         finally:
             try:
                 self.client.auth_log_out()
-                self.logger.log_end("Main")
+                self.logger.log_end("Process Completed Torrents")
             except Exception as e:
                 self.logger.error(f"Logout failed: {e}")
+
+    def disable_large_files_download(self, dry_run=True):
+        self.logger.log_start("Disable Large Files Download")
+        self.logger.log("Dry run: " + str(dry_run))
+        
+        try:
+            self.client.auth_log_in()
+            
+            if not self.client.is_logged_in:
+                self.logger.error("Failed to log in to qbittorrent")
+                raise Exception("Login failed: not authenticated")
+            
+            self.logger.log("Logged in to qbittorrent")
+            # Single API call to fetch all torrents
+            all_torrents = self.client.torrents_info()
+            
+            # Filter active torrents in category xxx
+            target_category = "xxx"
+            active_torrents = [torrent for torrent in all_torrents 
+                              if torrent['state'] in ['downloading', 'queuedDL', 'stalledDL'] 
+                              and torrent['category'] == target_category]
+            
+            self.logger.log(f"Active torrents in category '{target_category}': {len(active_torrents)}")
+            
+            size_limit = 3 * 1024 * 1024 * 1024  # 3 GB in bytes
+            total_files_disabled = 0
+            
+            for torrent in active_torrents:
+                self.logger.log(f"Processing torrent: {torrent.name} (hash: {torrent.hash})")
+                
+                # Get torrent files
+                torrent_files = self.client.torrents_files(torrent_hash=torrent.hash)
+                
+                files_to_disable = []
+                for file_info in torrent_files:
+                    if file_info.size > size_limit:
+                        files_to_disable.append(file_info.id)
+                        self.logger.log(f"  File > 3GB: {file_info.name} ({file_info.size / (1024**3):.2f} GB)")
+                
+                if files_to_disable:
+                    self.logger.log(f"  Found {len(files_to_disable)} files > 3GB to disable download")
+                    total_files_disabled += len(files_to_disable)
+                    
+                    if not dry_run:
+                        try:
+                            # Set file priority to 0 (do not download)
+                            for file_id in files_to_disable:
+                                self.client.torrents_file_priority(
+                                    torrent_hash=torrent.hash,
+                                    file_ids=file_id,
+                                    priority=0
+                                )
+                            self.logger.log(f"  Disabled download for {len(files_to_disable)} files")
+                        except Exception as e:
+                            self.logger.error(f"  Failed to disable files for torrent {torrent.name}: {e}")
+                    else:
+                        self.logger.log(f"  [DRY RUN] Would disable download for {len(files_to_disable)} files")
+                else:
+                    self.logger.log(f"  No files > 3GB found")
+            
+            self.logger.log(f"Total files to disable across all torrents: {total_files_disabled}")
+        except Exception as e:
+            self.logger.error(f"Disable large files download failed: {e}")
+        finally:
+            try:
+                self.client.auth_log_out()
+                self.logger.log_end("Disable Large Files Download")
+            except Exception as e:
+                self.logger.error(f"Logout failed: {e}")
+
+    def main(self):
+        parser = argparse.ArgumentParser(description='Manage qBittorrent operations')
+        parser.add_argument('--report', action='store_true',
+                            help='Generate report of completed torrents and delete them')
+        parser.add_argument('--disable3G', action='store_true',
+                            help='Disable download of video files > 3GB for active torrents in category xxx')
+        parser.add_argument('--execute', action='store_true', help='Execute operations (default is dry-run)')
+
+        args = parser.parse_args()
+        dry_run = not args.execute
+
+        if args.report:
+            self.process_completed_torrents(dry_run)
+
+        if args.disable3G:
+            self.disable_large_files_download(dry_run)
 
     def parse_config(self):
         defaults_path = None
