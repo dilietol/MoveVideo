@@ -2,7 +2,7 @@
 
 ## Overview
 
-`ManageQBittorrent` is a Python client for managing qBittorrent through its Web API. The program connects to a remote qBittorrent instance, monitors torrents, and automatically cleans up completed and moved torrents.
+`ManageQBittorrent` is a Python client for managing qBittorrent through its Web API. The program connects to a remote qBittorrent instance, monitors torrents, and provides various operations for torrent management including cleanup and file download control.
 
 ## Main Features
 
@@ -16,7 +16,7 @@
 - **Active Torrents**: Retrieves and logs all torrents in download state (`downloading`)
 - **Full Report**: Generates a report with torrent count for each state (pausedUP, stalledUP, queuedUP, uploading, stoppedUP, missingFiles, etc.)
 
-### 3. Automatic Cleanup
+### 3. Completed Torrent Cleanup
 The program identifies and automatically removes completed torrents that meet these criteria:
 - File path **DOES NOT** start with the `Incomplete` folder
 - File path **STARTS** with the `Downloads` folder
@@ -29,6 +29,13 @@ The program identifies and automatically removes completed torrents that meet th
   - `missingFiles` - Missing files
 
 Torrents are removed from the qBittorrent list but **files are NOT deleted** from disk.
+
+### 4. Large Files Download Control
+The program can disable download of files larger than 3 GB for active torrents in specific categories:
+- Filters active torrents (downloading, queuedDL, stalledDL) in category "xxx"
+- Identifies files > 3 GB within each torrent
+- Sets file priority to 0 (do not download) for large files
+- Supports dry-run mode for testing
 
 ## Configuration
 
@@ -73,15 +80,26 @@ Generates and logs a report with torrent count for each state.
 ### `get_completed_and_moved_torrents()`
 Returns the list of completed and moved torrents that meet cleanup criteria.
 
+### `process_completed_torrents(dry_run=True)`
+Processes completed torrents:
+- Generates a full report of all torrents
+- Logs active torrents
+- Identifies completed torrents based on path and state
+- Removes completed torrents from qBittorrent list (files not deleted)
+- Supports dry-run mode for testing
+
+### `disable_large_files_download(dry_run=True)`
+Disables download of files larger than 3 GB for active torrents in category "xxx":
+- Filters active torrents (downloading, queuedDL, stalledDL) in category "xxx"
+- Identifies files > 3 GB within each torrent
+- Sets file priority to 0 (do not download) for large files
+- Supports dry-run mode for testing
+
 ### `main()`
-Executes the main flow:
-1. Performs login
-2. Retrieves all torrents
-3. Logs full report
-4. Logs active torrents
-5. Identifies completed torrents
-6. Removes completed torrents from list
-7. Performs logout
+Parses command-line arguments and executes the requested operation:
+- `--report`: Generate report and clean completed torrents
+- `--disable3G`: Disable download of files > 3 GB in category xxx
+- `--execute`: Execute operations (default is dry-run)
 
 ### `parse_config()`
 Loads and validates the TOML configuration file.
@@ -100,17 +118,50 @@ The program includes robust error handling:
 
 ## Usage
 
-Run the script directly:
+### Command Line Interface
+
+The script supports command-line arguments for different operations:
+
+**Generate report and clean completed torrents (dry-run):**
 ```bash
-python ManageQBittorent.py
+python ManageQBittorent.py --report
 ```
 
-Or import and use the class in other code:
+**Generate report and clean completed torrents (execute):**
+```bash
+python ManageQBittorent.py --report --execute
+```
+
+**Disable download of files > 3 GB in category xxx (dry-run):**
+```bash
+python ManageQBittorent.py --disable3G
+```
+
+**Disable download of files > 3 GB in category xxx (execute):**
+```bash
+python ManageQBittorent.py --disable3G --execute
+```
+
+**Show help:**
+```bash
+python ManageQBittorent.py --help
+```
+
+### Docker Aliases
+
+When running in the Docker container, the following aliases are available:
+- `move` - Move videos and clean completed torrents
+- `disable3g` - Disable download of files > 3GB in xxx category
+
+### Programmatic Usage
+
+Import and use the class in other code:
 ```python
 from ManageQBittorent import QBitTorrentClient
 
 qb_client = QBitTorrentClient()
-qb_client.main()
+qb_client.process_completed_torrents(dry_run=True)
+qb_client.disable_large_files_download(dry_run=True)
 ```
 
 ## Requirements
