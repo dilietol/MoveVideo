@@ -1,3 +1,16 @@
+"""
+CRITERIA FOR SELECTING THE BEST FILE (id field):
+The algorithm applies the following filters in priority order:
+1. Minimum duration: all files must have duration >= 540 seconds
+2. Similar duration: durations must differ by <= 0.05% (0.0005 relative)
+3. Preliminary size filter: excludes files > 3 GB (if 1 file remains, select it)
+4. Vertical resolution: prefers 1080p > 720p > maximum height
+5. Video codec: prefers hevc > h264 > vc1 > mpeg4 > wmv3
+6. Smallest size: among equivalent files, selects the lightest
+7. Organized status: prefers organized files
+8. Filename: excludes names starting with "None", prefers shortest name
+"""
+
 import os
 from dataclasses import dataclass, field
 from typing import Any, List
