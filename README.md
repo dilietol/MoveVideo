@@ -1,130 +1,142 @@
 # MoveVideo
 
-Applicazione Python per la gestione di video, integrazione con qBittorrent e Stash, rilevamento duplicati e generazione di feed RSS.
+Python application for video management, integration with qBittorrent and Stash, duplicate detection, and RSS feed generation.
 
-## Descrizione
+## Overview
 
-**MoveVideo** è un insieme di script Python progettati per:
-- Spostare file video da una directory sorgente a una destinazione
-- Gestire duplicati basati su phash/oshash
-- Integrare con qBittorrent per la gestione dei torrent
-- Integrare con Stash (media server) per il metadata scraping
-- Generare feed RSS automatici
+**MoveVideo** is a suite of Python scripts designed to automate video library management through three main components:
 
-Il progetto è stato strutturato come package Python ufficiale (`App/`) per una migliore portabilità e manutenibilità.
+### MoveVideo.py
+Moves video files from a source directory to a destination, organizes them by category, and cleans up empty directories. It monitors specific folders and automatically transfers completed downloads to their final locations.
 
-## Prerequisiti
+### ManageStash.py
+Integrates with Stash (media server) to manage video metadata, detect duplicates, and automate library maintenance. Key features include:
+- Library scanning and metadata scraping from remote sources
+- Duplicate detection and cleanup based on phash/oshash fingerprints
+- Tag management and scene organization
+- Garbage collection for corrupted or misplaced files
 
-### Software richiesto
+### ManageQBittorrent.py
+Manages qBittorrent through its Web API to automate torrent operations:
+- Generates reports on torrent status and categories
+- Cleans up completed and moved torrents from the list
+- Controls file download priorities (e.g., disabling files > 3 GB in specific categories)
+- Supports dry-run mode for safe testing
 
-- Python 3.12 o superiore
+The project is structured as an official Python package (`App/`) for better portability and maintainability.
+
+## Prerequisites
+
+### Required Software
+
+- Python 3.12 or higher
 - `pip install -r requirements.txt`
 
-### Configurazione
+### Configuration
 
-Il progetto richiede un file di configurazione `config/config.toml` con la seguente struttura:
+The project requires a configuration file `config/config.toml` with the following structure:
 
-## Installazione
+## Installation
 
-1. Clona o copia il repository nella tua directory di lavoro
-2. Crea un ambiente virtuale (facoltativo ma consigliato):
+1. Clone or copy the repository to your working directory
+2. Create a virtual environment (optional but recommended):
    ```bash
    python -m venv venv
    source venv/Scripts/activate  # Windows
    . venv/bin/activate  # Linux/macOS
    ```
-3. Installa le dipendenze:
+3. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-4. Crea il file `config/config.toml` con le impostazioni del tuo setup
-5. Verifica che qBittorrent e Stash siano raggiungibili dalle loro rispettive host/port
+4. Create the `config/config.toml` file with your setup settings
+5. Verify that qBittorrent and Stash are reachable from their respective host/port
 
-## Utilizzo
+## Usage
 
-### Esecuzione principale
+### Main Execution
 
-L'applicazione può essere eseguita dalla root del progetto:
+The application can be run from the project root:
 
 ```bash
 python -m App.MoveVideo
 ```
 
-Oppure direttamente dalla cartella `App/`:
+Or directly from the `App/` folder:
 ```bash
 python App/MoveVideo.py
 ```
 
-### Comandi disponibili
+### Available Commands
 
-L'applicazione supporta diversi comandi tramite argomenti da riga di comando (vedere i singoli file per i dettagli):
+The application supports various commands through command-line arguments (see individual files for details):
 
 - **MoveVideo**: `move_files`, `delete_small_directories`, `is_video_file`
 - **ManageStash**: scan, delete_duplicates_scenes, process_files, garbage collection
 - **StashCli**: matching, scraping, update operations
-- **ProxiedScraper**: scraping periodico, generazione RSS
+- **ProxiedScraper**: periodic scraping, RSS generation
 
-### Esempio di base
+### Basic Example
 
-Per avviare il movimento dei file video:
+To start moving video files:
 ```bash
 python -m App.MoveVideo
 ```
 
-Per eseguire una scansione completa su Stash:
+To run a full scan on Stash:
 ```bash
 python -m App.ManageStash --scan
 ```
 
-## Struttura del progetto
+## Project Structure
 
 ```
 MoveVideo/
-├── README.md          # Questo file
-├── requirements.txt   # Dipendenze Python
-├── config/            # Cartella di configurazione
-│   └── config.toml    # Configurazione qBittorrent/Stash
-├── App/               # Package Python principale
+├── README.md          # This file
+├── requirements.txt   # Python dependencies
+├── config/            # Configuration folder
+│   └── config.toml    # qBittorrent/Stash configuration
+├── App/               # Main Python package
 │   ├── __init__.py    # Package initialization
-│   ├── Config.py      # Gestione configurazione e override environment
-│   ├── Log.py         # Utility di logging personalizzata
-│   ├── Types.py       # Dataclass e costanti condivise
-│   ├── FindBestFile.py# Logica selezione file duplicati
-│   ├── MoveVideo.py   # Spostamento file e pulizia directory
-│   ├── ManageQBittorent.py  # Client qBittorrent
-│   ├── ManageStash.py # Integrazione Stash
-│   ├── StashCli.py    # CLI per operazioni Stash
-│   ├── ProxiedScraper.py  # Web scraper + server RSS
-│   └── Test.py        # Script di test/esecuzione
-├── tests/             # Test unitari (nuovo)
+│   ├── Config.py      # Configuration management and environment overrides
+│   ├── Log.py         # Custom logging utility
+│   ├── Types.py       # Shared dataclasses and constants
+│   ├── FindBestFile.py# Duplicate file selection logic
+│   ├── MoveVideo.py   # File moving and directory cleanup
+│   ├── ManageQBittorent.py  # qBittorrent client
+│   ├── ManageStash.py # Stash integration
+│   ├── StashCli.py    # CLI for Stash operations
+│   ├── ProxiedScraper.py  # Web scraper + RSS server
+│   └── Test.py        # Test/execution script
+├── tests/             # Unit tests
 │   └── test_findbestfile.py
-└── Dockerfile         # Configurazione Docker (se presente)
+└── Dockerfile         # Docker configuration (if present)
 ```
 
-## Configurazione avanzata
+## Advanced Configuration
 
 ### Environment Variables
 
-Le variabili d'ambiente possono sovrascrivere i valori del `config.toml`:
+Environment variables can override values in `config.toml`:
 
 - `QBITTORENT_USERNAME`
 - `QBITTORENT_PASSWORD`
 - `STASH_API_KEY`
-- `STASH_HOST` (formato: `http://host:port`)
+- `STASH_HOST` (format: `http://host:port`)
 
-### Personalizzazione
+### Customization
 
-- Aggiungi nuovi proxy scraper in `ProxiedScraper.py`
-- Modifica le costanti `MATCHES_STASHBOX` in `App/Types.py`
-- Estendi la logica di selezione file in `App/FindBestFile.py`
+- Add new proxy scrapers in `ProxiedScraper.py`
+- Modify `MATCHES_STASHBOX` constants in `App/Types.py`
+- Extend file selection logic in `App/FindBestFile.py`
 
-## Note e limitazioni
+## Notes and Limitations
 
-- L'applicazione è stata testata con qBittorrent e Stash in ambiente domestico
-- Alcune funzionalità richiedono che i servizi siano raggiungibili dalla macchina che esegue lo script
-- Il rilevamento duplicati si basa su fingerprint (phash/oshash) presenti nei metadati di Stash
-- Le directory di trash e download sono configurabili ma assume percorsi assoluti
+- The application has been tested with qBittorrent and Stash in a home environment
+- Some features require services to be reachable from the machine running the script
+- Duplicate detection relies on fingerprints (phash/oshash) present in Stash metadata
+- Trash and download directories are configurable but assume absolute paths
 
-## Licenza
+## License
 
-Questo progetto è open source. Si prega di consultare i file di licenza eventualmente presenti.
+This project is open source. Please consult any license files present.
