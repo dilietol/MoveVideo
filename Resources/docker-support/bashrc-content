@@ -1,3 +1,25 @@
+# Welcome message with alias descriptions
+echo '
+========================================
+  MoveVideo Container - Available Aliases
+========================================
+
+scan      - Scan library with Stash
+process   - Process files for matches and update paths
+processmodel - Process models path
+dd        - Delete duplicate scenes
+ddf       - Delete duplicate files
+move      - Move videos and clean completed torrents
+disable3g - Disable download of files > 3GB in xxx category
+proxy     - Run proxied scraper
+mf        - Move files from move_from to move_to
+coff      - Clear crontab
+
+========================================
+  Use --help with any script for details
+========================================
+'
+
 alias scan='cd /App && /usr/local/bin/python3 ManageStash.py --scan > /proc/1/fd/1 2>&1'
 alias process='cd /App && /usr/local/bin/python3 ManageStash.py --execute --process_files > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --execute --garbage > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --execute --update_scene_path --path "/61.1_series/61.1.9.import/ongoing_series" > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --execute --update_scene_path --path "/61.1_series/61.1.9.import/_old" > /proc/1/fd/1 2>&1'
 alias processmodel='cd /App && /usr/local/bin/python3 ManageStash.py --execute --update_scene_path --path "/61.1_series/61.1.9.import/models" > /proc/1/fd/1 2>&1'
