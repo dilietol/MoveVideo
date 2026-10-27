@@ -155,9 +155,11 @@ class QBitTorrentClient:
                 
                 files_to_disable = []
                 for file_info in torrent_files:
-                    if file_info.size > size_limit:
+                    file_name_lower = file_info.name.lower()
+                    if file_info.size > size_limit or file_name_lower.endswith('sample.mkv'):
+                        reason = "size > 3GB" if file_info.size > size_limit else "sample.mkv file"
                         files_to_disable.append(file_info.id)
-                        self.logger.log(f"  File > 3GB: {file_info.name} ({file_info.size / (1024**3):.2f} GB)")
+                        self.logger.log(f"  File ({reason}): {file_info.name} ({file_info.size / (1024**3):.2f} GB)")
                 
                 if files_to_disable:
                     self.logger.log(f"  Found {len(files_to_disable)} files > 3GB to disable download")
