@@ -473,7 +473,7 @@ class ManageStash:
 
         parser.add_argument('--path', nargs="+", type=str, help='Path to process')
         parser.add_argument('--execute', action='store_true', help='Execute operations (default is dry-run)')
-        parser.add_argument('--n', nargs="+", type=int, help='Number of scenes to process')
+        parser.add_argument('--n', nargs="+", type=int, default=200, help='Number of scenes to process')
 
         args = parser.parse_args()
         dry_run = not args.execute
