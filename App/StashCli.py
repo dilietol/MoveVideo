@@ -1,4 +1,5 @@
 import time
+from asyncio import log
 from typing import Any, List
 
 from requests.exceptions import ConnectionError, Timeout
@@ -107,6 +108,81 @@ class StashCli:
                 result.append(Tags(id=elem["id"], name=elem["name"]))
         return result
 
+    def get_studios_by_tag(self, tag_name: str) -> list[Studio]:
+        """
+        Retrieve studios that have a specific tag.
+        Only returns studios that have at least one scene.
+        Args:
+            tag_name: Name of the tag to filter studios by.
+        Returns:
+            List of Studio objects matching the tag.
+        """
+        self.logger.log_start("FETCHING STUDIOS BY TAG")
+        self.logger.log("Tag: " + tag_name)
+
+        # Get the tag ID
+        tags = self.get_tags(tag_name)
+        if not tags:
+            self.logger.log("Tag not found: " + tag_name)
+            self.logger.log_end("FETCHING STUDIOS BY TAG")
+            return []
+
+        tag_id = tags[0].id
+
+        # Find studios with the tag using the correct filter structure
+        studios = []
+        page = 1
+        per_page = 50
+        has_more = True
+
+        studio_filter_str = {
+                            "tags":
+                                {"value": tag_id,
+                                 "modifier": "INCLUDES_ALL",
+                                 "depth": 0
+                                 },
+                            "scene_count":
+                                {"value": 0,
+                                 "modifier": "GREATER_THAN"
+                                 }
+                            }
+        while has_more:
+            try:
+                data = self.stash_interface.find_studios(f=studio_filter_str,
+                    filter={"per_page": per_page, "page": page, "sort": "scenes_count", "direction": "DESC"},
+                    get_count=False
+                )
+
+                for elem in data:
+                    # Only include studios that have scenes
+                    self.logger.log("Studio: " + str(elem))
+                    if elem.get("scene_count", 0) > 0:
+                        studios.append(Studio(json=elem))
+
+                if len(data) < per_page:
+                    has_more = False
+                page += 1
+            except Exception as e:
+                self.logger.log("Error fetching studios: " + str(e))
+                break
+
+        self.logger.log("Found " + str(len(studios)) + " studios with tag '" + tag_name + "' and scenes")
+        self.logger.log_end("FETCHING STUDIOS BY TAG")
+        return studios
+
+    def find_scenes_by_studio(self, studio_id: str, scenes_number_max: int = 0) -> list[Scene]:
+        """
+        Find scenes belonging to a specific studio.
+        Args:
+            studio_id: ID of the studio to filter by.
+            scenes_number_max: Maximum number of scenes to retrieve (0 for all).
+        Returns:
+            List of Scene objects belonging to the studio.
+        """
+        scene_filter_str = {"studios": {"value": studio_id, "modifier": "INCLUDES"}}
+        scene_list = self.find_scenes_by_scene_filter(scene_filter_str, scenes_number_max)
+        return scene_list
+
     def get_stashbox_list(self, tags_list: list[Tags]) -> list[StashBox]:
         # Retrieve and configure stashbox connections.
         stashbox_list: List[StashBox] = MATCHES_STASHBOX
@@ -157,7 +233,7 @@ class StashCli:
             self.stash_interface.create_studio(
                 {"name": studio.name, "urls": studio.urls,
                  "parent_id": studio.parent.get("stored_id") if studio.parent is not None else None,
-                 "image": studio.image,
+                 "image": studio.image if studio.image is not None else None,
                  "stash_ids": [{"endpoint": stashbox.url, "stash_id": studio.remote_site_id}]})
             self.logger.log("STUDIO CREATED: " + studio.name)
             executed = True

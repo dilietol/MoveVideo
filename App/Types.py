@@ -87,22 +87,32 @@ class Studio:
     """Studio information parsed from a Stash scene JSON payload."""
 
     json: Dict[str, Any] | None
-    stored_id: str | None = field(init=False)
+    stored_id: str | None = None
     name: str = field(init=False)
     urls: List[str] = field(init=False)
-    parent: Dict[str, Any] | None = field(init=False)
-    image: str = field(init=False)
-    remote_site_id: str = field(init=False)
+    parent: Dict[str, Any] | None = None
+    image: str| None = field(init=False)
+    remote_site_id: str | None = None
+
+    id: str | None = field(init=False)
+    parent_studio: Dict[str, Any] | None = field(init=False)
+    image_path: str| None = field(init=False)
+    stash_ids: List[Dict[str, Any]]|None = field(init=False)
+
 
     def __post_init__(self) -> None:
         if self.json is None:
             return
-        self.stored_id = self.json["stored_id"]
+        self.stored_id = self.json["stored_id"] if "stored_id" in self.json else None
         self.name = self.json["name"]
         self.urls = self.json["urls"]
-        self.parent = self.json["parent"]
-        self.image = self.json["image"]
-        self.remote_site_id = self.json["remote_site_id"]
+        self.parent = self.json["parent"] if "parent" in self.json else None
+        self.image = self.json["image"] if "image" in self.json else None
+        self.remote_site_id = self.json["remote_site_id"] if "remote_site_id" in self.json else None
+        self.id = self.json["id"] if "id" in self.json else None
+        self.parent_studio = self.json["parent_studio"] if "parent_studio" in self.json else None
+        self.image_path = self.json["image_path"] if "image_path" in self.json else None
+        self.stash_ids = self.json["stash_ids"] if "stash_ids" in self.json else None
         self.json = None
 
 

@@ -457,6 +457,55 @@ class ManageStash:
         self.stash.remove_tags(scene_list, [x for x in tags_list if x.name in [MATCHES_DONE]], dry_run)
         self.logger.log_end("PROCESS Test")
 
+    def delete_studio_files(self, dry_run=True):
+        """
+        Delete scenes from studios tagged with TO_DELETE.
+        Retrieves studios with the TO_DELETE tag and deletes all their scenes.
+        Only processes studios that have at least one scene.
+        Args:
+            dry_run: If True, only log what would be deleted without making changes.
+        """
+        self.logger.log_start("DELETE STUDIO FILES")
+        self.logger.log("Dry run: " + str(dry_run))
+        
+        # Get studios with TO_DELETE tag
+        studios = self.stash.get_studios_by_tag("TO_DELETE")
+        
+        if not studios:
+            self.logger.log("No studios found with tag TO_DELETE")
+            self.logger.log_end("DELETE STUDIO FILES")
+            return
+        
+        self.logger.log("Found " + str(len(studios)) + " studios to process")
+        
+        total_scenes_to_delete = 0
+        scene_id_list = []
+        
+        for studio in studios:
+            self.logger.log("Processing studio: " + studio.name + " (id: " + str(studio.id)+ ")")
+            
+            # Get scenes for this studio
+            scenes = self.stash.find_scenes_by_studio(studio.id, 0)
+            
+            if scenes:
+                self.logger.log("  Found " + str(len(scenes)) + " scenes for studio " + studio.name)
+                total_scenes_to_delete += len(scenes)
+                scene_id_list.extend([scene.id for scene in scenes])
+                
+                for scene in scenes:
+                    self.logger.log("    Scene: " + str(scene.title) + " (id: " + str(scene.id) + ")")
+            else:
+                self.logger.log("  No scenes found for studio " + studio.name)
+        
+        self.logger.log("Total scenes to delete: " + str(total_scenes_to_delete))
+        
+        if scene_id_list:
+            self.stash.destroy_scenes(dry_run, scene_id_list, True)
+        else:
+            self.logger.log("No scenes to delete")
+        
+        self.logger.log_end("DELETE STUDIO FILES")
+
     def main(self):
 
         parser = argparse.ArgumentParser(description='Manage Stash operations')
@@ -470,6 +519,8 @@ class ManageStash:
         parser.add_argument('--update_scene_path', action='store_true', help='Process update files in path')
         parser.add_argument('--reset_scene_path', action='store_true', help='Reset tag for files in path')
         parser.add_argument('--test', action='store_true', help='Process test')
+        parser.add_argument('--delete_studio_files', action='store_true',
+                            help='Delete scenes from studios tagged with TO_DELETE')
 
         parser.add_argument('--path', nargs="+", type=str, help='Path to process')
         parser.add_argument('--execute', action='store_true', help='Execute operations (default is dry-run)')
@@ -515,6 +566,9 @@ class ManageStash:
 
         if args.test:
             self.process_test(dry_run)
+
+        if args.delete_studio_files:
+            self.delete_studio_files(dry_run)
 
 
 if __name__ == "__main__":
