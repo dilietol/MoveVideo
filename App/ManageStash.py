@@ -510,9 +510,8 @@ class ManageStash:
 
         if args.reset_scene_path:
             for x in args.path:
-                for y in range(1, 10):
-                    self.logger.log("Resetting scene path - run number " + str(y) + "/" + str(10) + " (dry run: " + str(dry_run) + ")")
-                    self.process_reset_scene_path(path=x, reset_scene_max_number=num_scenes, dry_run=dry_run)
+                self.logger.log("Resetting scene path (dry run: " + str(dry_run) + ")")
+                self.process_reset_scene_path(path=x, reset_scene_max_number=num_scenes, dry_run=dry_run)
 
         if args.test:
             self.process_test(dry_run)
