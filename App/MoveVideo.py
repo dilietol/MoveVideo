@@ -55,6 +55,19 @@ class MoveVideo:
                     total_size += self.get_directory_size(entry.path)
         return total_size
 
+    def delete_qb_temp_files(self, directory_path: str) -> None:
+        self.logger.log_start(f"Deleting !qB temporary files in {directory_path}")
+        for root, dirs, files in os.walk(directory_path):
+            for file_name in files:
+                if file_name.endswith('!qB'):
+                    file_path = os.path.join(root, file_name)
+                    try:
+                        os.remove(file_path)
+                        self.logger.log(f"Deleted !qB file: {file_path}")
+                    except OSError as e:
+                        self.logger.log(f"Error deleting {file_path}: {e}")
+        self.logger.log_end(f"Deleting !qB temporary files in {directory_path}")
+
     def delete_small_directories(self, directory_path: str) -> None:
         self.logger.log_start(f"Deleting small directories in {directory_path}")
         # Collect directories to delete first, then remove them after os.walk completes
@@ -239,6 +252,7 @@ class MoveVideo:
         self.logger.log("Version: " + str(VERSION))
 
         self.move_files(self.dir_out)
+        self.delete_qb_temp_files(self.dir_in)
         self.delete_small_directories(self.dir_in)
 
 if __name__ == '__main__':
