@@ -146,6 +146,7 @@ class QBitTorrentClient:
             
             size_limit = 3 * 1024 * 1024 * 1024  # 3 GB in bytes
             total_files_disabled = 0
+            all_files_to_disable = []
             
             for torrent in active_torrents:
                 self.logger.log(f"Processing torrent: {torrent.name} (hash: {torrent.hash})")
@@ -153,16 +154,40 @@ class QBitTorrentClient:
                 # Get torrent files
                 torrent_files = self.client.torrents_files(torrent_hash=torrent.hash)
                 
+                # Identify video files and check enabled ones
+                video_extensions = ['.mkv', '.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.m4v']
+                video_files = []
+                enabled_video_files = []
+                
+                for file_info in torrent_files:
+                    file_name_lower = file_info.name.lower()
+                    is_video = any(file_name_lower.endswith(ext) for ext in video_extensions)
+                    if is_video:
+                        video_files.append(file_info)
+                        if file_info.priority > 0:
+                            enabled_video_files.append(file_info)
+                
                 files_to_disable = []
                 for file_info in torrent_files:
                     file_name_lower = file_info.name.lower()
+                    # Check for large files or sample files
                     if file_info.size > size_limit or file_name_lower.endswith('sample.mkv'):
                         reason = "size > 3GB" if file_info.size > size_limit else "sample.mkv file"
                         files_to_disable.append(file_info.id)
+                        all_files_to_disable.append(file_info.name)
                         self.logger.log(f"  File ({reason}): {file_info.name} ({file_info.size / (1024**3):.2f} GB)")
+                    # Check for video file with name "01" (without extension) that is the only enabled video
+                    elif len(enabled_video_files) == 1 and file_info in enabled_video_files:
+                        # Extract basename without extension (handles files in subdirectories)
+                        file_basename = os.path.basename(file_name_lower)
+                        file_name_without_ext = os.path.splitext(file_basename)[0]
+                        if file_name_without_ext == '01':
+                            files_to_disable.append(file_info.id)
+                            all_files_to_disable.append(file_info.name)
+                            self.logger.log(f"  File (only enabled video with name '01'): {file_info.name}")
                 
                 if files_to_disable:
-                    self.logger.log(f"  Found {len(files_to_disable)} files > 3GB to disable download")
+                    self.logger.log(f"  Found {len(files_to_disable)} files to disable download")
                     total_files_disabled += len(files_to_disable)
                     
                     if not dry_run:
@@ -183,6 +208,10 @@ class QBitTorrentClient:
                     self.logger.log(f"  No files > 3GB found")
             
             self.logger.log(f"Total files to disable across all torrents: {total_files_disabled}")
+            if all_files_to_disable:
+                self.logger.log("Files to disable:")
+                for file_name in all_files_to_disable:
+                    self.logger.log(f"  - {file_name}")
         except Exception as e:
             self.logger.error(f"Disable large files download failed: {e}")
         finally:
