@@ -142,7 +142,13 @@ class QBitTorrentClient:
                               if torrent['state'] in ['downloading', 'queuedDL', 'stalledDL'] 
                               and torrent['category'] == target_category]
             
+            # Filter metadata torrents in category xxx
+            metadata_torrents = [torrent for torrent in all_torrents
+                                if torrent['state'] in ['metaDL']
+                                and torrent['category'] == target_category]
+            
             self.logger.log(f"Active torrents in category '{target_category}': {len(active_torrents)}")
+            self.logger.log(f"Metadata torrents in category '{target_category}': {len(metadata_torrents)}")
             
             size_limit = 3 * 1024 * 1024 * 1024  # 3 GB in bytes
             total_files_disabled = 0
@@ -150,6 +156,7 @@ class QBitTorrentClient:
             processed_count = 0
             
             for torrent in active_torrents:
+                ##self.logger.log(f"Processing torrent: {torrent.name} (hash: {torrent.hash}) (state: {torrent.state}) (category: {torrent.category})")
                 processed_count += 1
                 if processed_count % 250 == 0:
                     self.logger.log(f"Processed {processed_count}/{len(active_torrents)} torrents")
@@ -213,6 +220,27 @@ class QBitTorrentClient:
                 self.logger.log("Files to disable:")
                 for file_name in all_files_to_disable:
                     self.logger.log(f"  - {file_name}")
+            
+            # Process metadata torrents - delete if active time > 1 hour
+            metadata_deleted_count = 0
+            one_hour_seconds = 3600 * 4
+            
+            for torrent in metadata_torrents:
+                ##self.logger.log(f"Processing metadata torrent: {torrent.name} (hash: {torrent.hash}) (state: {torrent.state}) (category: {torrent.category}) (time_active: {torrent}")
+                time_active = torrent.get('time_active', 0)
+                if time_active > one_hour_seconds:
+                    self.logger.log(f"Metadata torrent {torrent.name} (hash: {torrent.hash}) active for {torrent.time_active}s - deleting")
+                    metadata_deleted_count += 1
+                    if not dry_run:
+                        try:
+                            self.client.torrents_delete(delete_files=True, torrent_hashes=[torrent.hash])
+                            self.logger.log(f"  Deleted metadata torrent: {torrent.name}")
+                        except Exception as e:
+                            self.logger.error(f"  Failed to delete metadata torrent {torrent.name}: {e}")
+                    else:
+                        self.logger.log(f"  [DRY RUN] Would delete metadata torrent: {torrent.name}")
+            
+            self.logger.log(f"Metadata torrents deleted: {metadata_deleted_count}")
         except Exception as e:
             self.logger.error(f"Disable large files download failed: {e}")
         finally:
