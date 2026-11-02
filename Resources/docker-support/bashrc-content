@@ -9,6 +9,7 @@ process   - Process files for matches and update paths
 processmodel - Process models path
 dd        - Delete duplicate scenes
 ddf       - Delete duplicate files
+dsf       - Delete studio files tagged with TO_DELETE
 move      - Move videos and clean completed torrents
 disable3g - Disable download of files > 3GB in xxx category
 proxy     - Run proxied scraper
@@ -25,6 +26,7 @@ alias process='cd /App && /usr/local/bin/python3 ManageStash.py --execute --proc
 alias processmodel='cd /App && /usr/local/bin/python3 ManageStash.py --execute --update_scene_path --path "/61.1_series/61.1.9.import/models" > /proc/1/fd/1 2>&1'
 alias dd='cd /App && /usr/local/bin/python3 ManageStash.py --execute --delete_duplicates_scenes > /proc/1/fd/1 2>&1'
 alias ddf='cd /App && /usr/local/bin/python3 ManageStash.py --execute --delete_duplicates_files > /proc/1/fd/1 2>&1'
+alias dsf='cd /App && /usr/local/bin/python3 ManageStash.py --execute --delete_studio_files > /proc/1/fd/1 2>&1'
 alias move='cd /App && /usr/local/bin/python3 MoveVideo.py > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageQBittorent.py --report --execute > /proc/1/fd/1 2>&1'
 alias disable3g='cd /App && /usr/local/bin/python3 ManageQBittorent.py --disable3G --execute > /proc/1/fd/1 2>&1'
 alias proxy='cd /App && /usr/local/bin/python3 ProxiedScraper.py > /proc/1/fd/1 2>&1'
