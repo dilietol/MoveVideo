@@ -170,8 +170,8 @@ class QBitTorrentClient:
                 files_to_disable = []
                 for file_info in torrent_files:
                     file_name_lower = file_info.name.lower()
-                    # Check for large files or sample files
-                    if file_info.size > size_limit or file_name_lower.endswith('sample.mkv'):
+                    # Check for large files or sample files (only if currently enabled)
+                    if (file_info.size > size_limit or file_name_lower.endswith('sample.mkv')) and file_info.priority > 0:
                         reason = "size > 3GB" if file_info.size > size_limit else "sample.mkv file"
                         files_to_disable.append(file_info.id)
                         all_files_to_disable.append(file_info.name)
