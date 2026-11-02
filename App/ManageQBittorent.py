@@ -147,9 +147,12 @@ class QBitTorrentClient:
             size_limit = 3 * 1024 * 1024 * 1024  # 3 GB in bytes
             total_files_disabled = 0
             all_files_to_disable = []
+            processed_count = 0
             
             for torrent in active_torrents:
-                self.logger.log(f"Processing torrent: {torrent.name} (hash: {torrent.hash})")
+                processed_count += 1
+                if processed_count % 250 == 0:
+                    self.logger.log(f"Processed {processed_count}/{len(active_torrents)} torrents")
                 
                 # Get torrent files
                 torrent_files = self.client.torrents_files(torrent_hash=torrent.hash)
@@ -204,9 +207,7 @@ class QBitTorrentClient:
                             self.logger.error(f"  Failed to disable files for torrent {torrent.name}: {e}")
                     else:
                         self.logger.log(f"  [DRY RUN] Would disable download for {len(files_to_disable)} files")
-                else:
-                    self.logger.log(f"  No files > 3GB found")
-            
+
             self.logger.log(f"Total files to disable across all torrents: {total_files_disabled}")
             if all_files_to_disable:
                 self.logger.log("Files to disable:")
