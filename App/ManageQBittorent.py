@@ -121,8 +121,8 @@ class QBitTorrentClient:
             except Exception as e:
                 self.logger.error(f"Logout failed: {e}")
 
-    def disable_large_files_download(self, dry_run=True):
-        self.logger.log_start("Disable Large Files Download")
+    def manage_torrents(self, dry_run=True):
+        self.logger.log_start("Manage Torrents")
         self.logger.log("Dry run: " + str(dry_run))
         
         try:
@@ -218,7 +218,7 @@ class QBitTorrentClient:
         finally:
             try:
                 self.client.auth_log_out()
-                self.logger.log_end("Disable Large Files Download")
+                self.logger.log_end("Manage Torrents")
             except Exception as e:
                 self.logger.error(f"Logout failed: {e}")
 
@@ -226,8 +226,8 @@ class QBitTorrentClient:
         parser = argparse.ArgumentParser(description='Manage qBittorrent operations')
         parser.add_argument('--report', action='store_true',
                             help='Generate report of completed torrents and delete them')
-        parser.add_argument('--disable3G', action='store_true',
-                            help='Disable download of video files > 3GB for active torrents in category xxx')
+        parser.add_argument('--manage_torrents', action='store_true',
+                            help='Manage torrents: for active torrents in category xxx disable download of video files > 3GB, sample video and single video file with name 01.*')
         parser.add_argument('--execute', action='store_true', help='Execute operations (default is dry-run)')
 
         args = parser.parse_args()
@@ -236,8 +236,8 @@ class QBitTorrentClient:
         if args.report:
             self.process_completed_torrents(dry_run)
 
-        if args.disable3G:
-            self.disable_large_files_download(dry_run)
+        if args.manage_torrents:
+            self.manage_torrents(dry_run)
 
     def parse_config(self):
         defaults_path = None

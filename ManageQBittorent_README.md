@@ -88,7 +88,7 @@ Processes completed torrents:
 - Removes completed torrents from qBittorrent list (files not deleted)
 - Supports dry-run mode for testing
 
-### `disable_large_files_download(dry_run=True)`
+### `manage_torrents(dry_run=True)`
 Disables download of files larger than 3 GB for active torrents in category "xxx":
 - Filters active torrents (downloading, queuedDL, stalledDL) in category "xxx"
 - Identifies files > 3 GB within each torrent
@@ -98,7 +98,7 @@ Disables download of files larger than 3 GB for active torrents in category "xxx
 ### `main()`
 Parses command-line arguments and executes the requested operation:
 - `--report`: Generate report and clean completed torrents
-- `--disable3G`: Disable download of files > 3 GB in category xxx
+- `--manage_torrents`: Manage torrents: disable download of files > 3 GB in category xxx
 - `--execute`: Execute operations (default is dry-run)
 
 ### `parse_config()`
@@ -132,14 +132,14 @@ python ManageQBittorent.py --report
 python ManageQBittorent.py --report --execute
 ```
 
-**Disable download of files > 3 GB in category xxx (dry-run):**
+**Manage torrents: disable download of files > 3 GB in category xxx (dry-run):**
 ```bash
-python ManageQBittorent.py --disable3G
+python ManageQBittorent.py --manage_torrents
 ```
 
-**Disable download of files > 3 GB in category xxx (execute):**
+**Manage torrents: disable download of files > 3 GB in category xxx (execute):**
 ```bash
-python ManageQBittorent.py --disable3G --execute
+python ManageQBittorent.py --manage_torrents --execute
 ```
 
 **Show help:**
@@ -151,7 +151,7 @@ python ManageQBittorent.py --help
 
 When running in the Docker container, the following aliases are available:
 - `move` - Move videos and clean completed torrents
-- `disable3g` - Disable download of files > 3GB in xxx category
+- `manage_torrents` - Manage torrents: disable download of files > 3GB in xxx category
 
 ### Programmatic Usage
 
@@ -161,7 +161,7 @@ from ManageQBittorent import QBitTorrentClient
 
 qb_client = QBitTorrentClient()
 qb_client.process_completed_torrents(dry_run=True)
-qb_client.disable_large_files_download(dry_run=True)
+qb_client.manage_torrents(dry_run=True)
 ```
 
 ## Requirements

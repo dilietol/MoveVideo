@@ -11,7 +11,7 @@ dd        - Delete duplicate scenes
 ddf       - Delete duplicate files
 dsf       - Delete studio files tagged with TO_DELETE
 move      - Move videos and clean completed torrents
-disable3g - Disable download of files > 3GB in xxx category
+mt        - Manage torrents: disable download of files > 3GB in xxx category
 proxy     - Run proxied scraper
 mf        - Move files from move_from to move_to
 coff      - Clear crontab
@@ -28,7 +28,7 @@ alias dd='cd /App && /usr/local/bin/python3 ManageStash.py --execute --delete_du
 alias ddf='cd /App && /usr/local/bin/python3 ManageStash.py --execute --delete_duplicates_files > /proc/1/fd/1 2>&1'
 alias dsf='cd /App && /usr/local/bin/python3 ManageStash.py --execute --delete_studio_files > /proc/1/fd/1 2>&1'
 alias move='cd /App && /usr/local/bin/python3 MoveVideo.py > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageQBittorent.py --report --execute > /proc/1/fd/1 2>&1'
-alias disable3g='cd /App && /usr/local/bin/python3 ManageQBittorent.py --disable3G --execute > /proc/1/fd/1 2>&1'
+alias mt='cd /App && /usr/local/bin/python3 ManageQBittorent.py --manage_torrents --execute > /proc/1/fd/1 2>&1'
 alias proxy='cd /App && /usr/local/bin/python3 ProxiedScraper.py > /proc/1/fd/1 2>&1'
 alias mf='find /App/move_from -mindepth 2 -exec sh -c '\''mv \"$1\" /app/move_to && echo \"Moved: $1\"'\'' _ {} > /proc/1/fd/1 2>&1 \\;'
 alias coff='crontab -r'
