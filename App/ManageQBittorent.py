@@ -223,7 +223,7 @@ class QBitTorrentClient:
             
             # Process metadata torrents - delete if active time > 1 hour
             metadata_deleted_count = 0
-            one_hour_seconds = 3600 * 4
+            one_hour_seconds = 3600
             
             for torrent in metadata_torrents:
                 ##self.logger.log(f"Processing metadata torrent: {torrent.name} (hash: {torrent.hash}) (state: {torrent.state}) (category: {torrent.category}) (time_active: {torrent}")
