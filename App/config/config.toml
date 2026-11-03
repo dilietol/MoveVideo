@@ -44,4 +44,4 @@ QueryMaxNumber = 200
 # Size limit in GB for files to disable download
 size_limit_gb = 3
 # Time limit in minutes for metadata torrents active time
-one_hour_minutes = 60
+one_hour_minutes = 30
