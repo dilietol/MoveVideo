@@ -150,7 +150,9 @@ class QBitTorrentClient:
             self.logger.log(f"Active torrents in category '{target_category}': {len(active_torrents)}")
             self.logger.log(f"Metadata torrents in category '{target_category}': {len(metadata_torrents)}")
             
-            size_limit = 3 * 1024 * 1024 * 1024  # 3 GB in bytes
+            # Read size limit from config (in GB, convert to bytes)
+            size_limit_gb = self.conf.get('TorrentManagement', {}).get('size_limit_gb', 3)
+            size_limit = size_limit_gb * 1024 * 1024 * 1024  # Convert GB to bytes
             total_files_disabled = 0
             all_files_to_disable = []
             processed_count = 0
@@ -182,7 +184,7 @@ class QBitTorrentClient:
                     file_name_lower = file_info.name.lower()
                     # Check for large files or sample files (only if currently enabled)
                     if (file_info.size > size_limit or file_name_lower.endswith('sample.mkv')) and file_info.priority > 0:
-                        reason = "size > 3GB" if file_info.size > size_limit else "sample.mkv file"
+                        reason = f"size > {size_limit_gb}GB" if file_info.size > size_limit else "sample.mkv file"
                         files_to_disable.append(file_info.id)
                         all_files_to_disable.append(file_info.name)
                         self.logger.log(f"  File ({reason}): {file_info.name} ({file_info.size / (1024**3):.2f} GB)")
@@ -221,15 +223,16 @@ class QBitTorrentClient:
                 for file_name in all_files_to_disable:
                     self.logger.log(f"  - {file_name}")
             
-            # Process metadata torrents - delete if active time > 1 hour
+            # Process metadata torrents - delete if active time exceeds configured limit
             metadata_deleted_count = 0
-            one_hour_seconds = 3600
+            one_hour_minutes = self.conf.get('TorrentManagement', {}).get('one_hour_minutes', 60)
+            one_hour_seconds = one_hour_minutes * 60  # Convert minutes to seconds
             
             for torrent in metadata_torrents:
                 ##self.logger.log(f"Processing metadata torrent: {torrent.name} (hash: {torrent.hash}) (state: {torrent.state}) (category: {torrent.category}) (time_active: {torrent}")
                 time_active = torrent.get('time_active', 0)
                 if time_active > one_hour_seconds:
-                    self.logger.log(f"Metadata torrent {torrent.name} (hash: {torrent.hash}) active for {torrent.time_active}s - deleting")
+                    self.logger.log(f"Metadata torrent {torrent.name} (hash: {torrent.hash}) active for {torrent.time_active}s (limit: {one_hour_minutes} minutes) - deleting")
                     metadata_deleted_count += 1
                     if not dry_run:
                         try:
