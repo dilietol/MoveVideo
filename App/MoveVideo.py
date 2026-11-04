@@ -11,7 +11,7 @@ VERSION = "0.1"
 
 # Convert to proper class-based configuration
 class MoveVideoConfig:
-    def __init__(self, in_dir="in", out_dir="out", min_dir_size=1000):
+    def __init__(self, in_dir="in", out_dir="out", min_dir_size=2621440):
         self.in_dir = in_dir
         self.out_dir = out_dir
         self.min_dir_size = min_dir_size
