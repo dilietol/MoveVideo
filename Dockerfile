@@ -22,6 +22,7 @@ COPY App/config/config.toml config/config.toml
 RUN echo "0 * * * * cd /App && /usr/local/bin/python3 ManageStash.py --scan > /proc/1/fd/1 2>&1" >> /etc/cron.d/crontab && \
     echo "10 * * * * cd /App && /usr/local/bin/python3 ManageStash.py --process_files > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --garbage > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --update_scene_path --path '/61.1_series/61.1.9.import/ongoing_series' > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --delete_duplicates_scenes > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageStash.py --delete_duplicates_files > /proc/1/fd/1 2>&1" >> /etc/cron.d/crontab && \
     echo "20,30,40,50 * * * * cd /App && /usr/local/bin/python3 MoveVideo.py > /proc/1/fd/1 2>&1 && /usr/local/bin/python3 ManageQBittorent.py > /proc/1/fd/1 2>&1" >> /etc/cron.d/crontab && \
+    echo "*/5 * * * * cd /App && /usr/local/bin/python3 ManageStash.py --execute --delete_studio_files > /proc/1/fd/1 2>&1" >> /etc/cron.d/crontab && \
     chmod 0644 /etc/cron.d/crontab
 
 # Aggiunta di alias al file .bashrc
